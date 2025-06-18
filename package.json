@@ -10,7 +10,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "eas-build": "npx eas-cli build",
+    "eas-login": "npx eas-cli login"
   },
   "jest": {
     "preset": "jest-expo"
@@ -23,6 +25,7 @@
     "@react-navigation/native": "^7.0.14",
     "@supabase/supabase-js": "^2.49.4",
     "base64-arraybuffer": "^1.0.2",
+    "eas-cli": "^5.9.3",
     "expo": "~52.0.46",
     "expo-av": "~15.0.2",
     "expo-blur": "~14.0.3",
