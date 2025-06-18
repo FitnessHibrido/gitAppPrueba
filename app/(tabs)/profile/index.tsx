@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Settings, Crown, ChevronRight, Scale, Clock, Weight, Trophy, LocationEdit as Edit3, Camera, TrendingUp } from 'lucide-react-native';
+import { Settings, Crown, ChevronRight, Scale, Clock, Weight, Trophy, LocationEdit as Edit3, Camera, TrendingUp, Users } from 'lucide-react-native';
 import { useProfile } from '@/context/ProfileContext';
 import { useAuth } from '@/context/AuthContext';
 import { usePerformance } from '@/hooks/usePerformance';
 import { useSubscription } from '@/hooks/useSubscription';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const { width } = Dimensions.get('window');
 
@@ -23,7 +23,7 @@ export default function ProfileScreen() {
     if (!user) {
       router.replace('/(auth)/login');
     }
-  }, [user]);
+  }, [user, router]);
 
   if (!user) return null;
   if (loading || !profile) {
@@ -181,6 +181,17 @@ export default function ProfileScreen() {
               </View>
               <Text style={styles.quickActionTitle}>Rendimiento</Text>
               <Text style={styles.quickActionSubtitle}>Estadísticas</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => router.push('/community')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: '#FEF3C7' }]}>
+                <Users size={24} color="#F59E0B" />
+              </View>
+              <Text style={styles.quickActionTitle}>Comunidad</Text>
+              <Text style={styles.quickActionSubtitle}>Logros y ranking</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -392,13 +403,15 @@ const styles = StyleSheet.create({
   },
   quickActionsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
   quickActionCard: {
     flex: 1,
+    minWidth: '30%',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -407,9 +420,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   quickActionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
