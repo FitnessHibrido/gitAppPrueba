@@ -6,6 +6,11 @@ import { useAuth } from '@/context/AuthContext';
 import { Animated, Easing, ImageBackground } from 'react-native';
 import React, { useState, useEffect } from 'react';
 
+// Disable SSR for this route
+export const unstable_settings = {
+  ssr: false,
+};
+
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

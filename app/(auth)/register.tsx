@@ -5,6 +5,11 @@ import { useRouter } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff, User, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '@/context/AuthContext';
 
+// Disable SSR for this route
+export const unstable_settings = {
+  ssr: false,
+};
+
 export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

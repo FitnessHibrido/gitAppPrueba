@@ -5,6 +5,11 @@ import { useRouter } from 'expo-router';
 import { Mail, ArrowLeft, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { useAuth } from '@/context/AuthContext';
 
+// Disable SSR for this route
+export const unstable_settings = {
+  ssr: false,
+};
+
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);

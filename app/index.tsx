@@ -2,6 +2,11 @@ import { Redirect } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { ActivityIndicator, View } from 'react-native';
 
+// Disable SSR for this route
+export const unstable_settings = {
+  ssr: false,
+};
+
 export default function Index() {
   const { user, loading } = useAuth();
 
