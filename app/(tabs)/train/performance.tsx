@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronRight, TrendingUp, Clock, Weight, Calendar, Trophy, Target, Dumbbell, ArrowUp, ArrowDown, RefreshCw, AlertCircle } from 'lucide-react-native';
+import { ChevronRight, TrendingUp, Clock, Weight, Calendar, Trophy, Target, Dumbbell, ArrowUp, ArrowDown, RefreshCw, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { usePerformance } from '@/hooks/usePerformance';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useCallback } from 'react';
