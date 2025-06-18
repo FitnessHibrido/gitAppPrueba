@@ -37,7 +37,7 @@ export default function ConfirmScreen() {
       let access_token: string | null = null;
       let refresh_token: string | null = null;
 
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
         const hash = window.location.hash;
         const params = new URLSearchParams(hash.slice(1));
         access_token = params.get('access_token');
