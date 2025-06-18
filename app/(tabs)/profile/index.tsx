@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Settings, Crown, ChevronRight, Scale, Clock, Weight, Trophy, Edit3, Camera, TrendingUp } from 'lucide-react-native';
+import { Settings, Crown, ChevronRight, Scale, Clock, Weight, Trophy, LocationEdit as Edit3, Camera, TrendingUp } from 'lucide-react-native';
 import { useProfile } from '@/context/ProfileContext';
 import { useAuth } from '@/context/AuthContext';
 import { usePerformance } from '@/hooks/usePerformance';
