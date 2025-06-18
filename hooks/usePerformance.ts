@@ -51,12 +51,16 @@ export function usePerformance() {
     startOfWeek.setDate(now.getDate() - now.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
 
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
     workouts.forEach(workout => {
       if (workout.total_volume && workout.start_time) {
         const workoutDate = new Date(workout.start_time);
         
         // Solo incluir workouts de la semana actual
-        if (workoutDate >= startOfWeek) {
+        if (workoutDate >= startOfWeek && workoutDate <= endOfWeek) {
           const dayIndex = workoutDate.getDay(); // 0 (Domingo) a 6 (Sábado)
           weeklyVolume[dayIndex] += workout.total_volume;
         }
@@ -71,40 +75,48 @@ export function usePerformance() {
 
   const getRecentPRs = (workouts: any[]) => {
     const prs: any[] = [];
-    const exerciseMaxes = new Map<string, { weight: number, date: string }>();
+    const exerciseHistory = new Map<string, { weight: number, date: string }[]>();
 
-    // Ordenar workouts de más antiguo a más reciente para calcular PRs correctamente
-    const sortedWorkouts = [...workouts].sort((a, b) =>
-      new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-    );
-
-    sortedWorkouts.forEach(workout => {
+    // Recopilar historial de cada ejercicio
+    workouts.forEach(workout => {
       if (workout.workout_exercises) {
         workout.workout_exercises.forEach((exercise: any) => {
-          const currentMax = exercise.max_weight || 0;
           const exerciseName = exercise.exercise_name;
-          const prevRecord = exerciseMaxes.get(exerciseName);
-
-          if (currentMax > 0 && (!prevRecord || currentMax > prevRecord.weight)) {
-            const improvement = prevRecord ? currentMax - prevRecord.weight : currentMax;
-            
-            exerciseMaxes.set(exerciseName, {
-              weight: currentMax,
+          const maxWeight = exercise.max_weight || 0;
+          
+          if (maxWeight > 0) {
+            if (!exerciseHistory.has(exerciseName)) {
+              exerciseHistory.set(exerciseName, []);
+            }
+            exerciseHistory.get(exerciseName)!.push({
+              weight: maxWeight,
               date: workout.start_time
             });
-
-            // Solo agregar si es una mejora significativa (más de 0.5kg)
-            if (improvement >= 0.5) {
-              prs.push({
-                exercise: exerciseName,
-                weight: currentMax,
-                date: workout.start_time,
-                improvement: Math.round(improvement * 10) / 10
-              });
-            }
           }
         });
       }
+    });
+
+    // Encontrar PRs para cada ejercicio
+    exerciseHistory.forEach((history, exerciseName) => {
+      // Ordenar por fecha
+      history.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      let currentMax = 0;
+      history.forEach(record => {
+        if (record.weight > currentMax) {
+          const improvement = record.weight - currentMax;
+          if (improvement >= 0.5) { // Solo mejoras significativas
+            prs.push({
+              exercise: exerciseName,
+              weight: record.weight,
+              date: record.date,
+              improvement: Math.round(improvement * 10) / 10
+            });
+          }
+          currentMax = record.weight;
+        }
+      });
     });
 
     // Retornar los 3 PRs más recientes
@@ -141,8 +153,10 @@ export function usePerformance() {
           stats.sets += setsCount;
           stats.totalWeight += maxWeight;
           stats.count += 1;
-          stats.weights.push(maxWeight);
-          stats.dates.push(workout.start_time);
+          if (maxWeight > 0) {
+            stats.weights.push(maxWeight);
+            stats.dates.push(workout.start_time);
+          }
 
           exerciseStats.set(exerciseName, stats);
         });
@@ -151,7 +165,7 @@ export function usePerformance() {
 
     // Convertir a array y calcular tendencias
     return Array.from(exerciseStats.entries())
-      .filter(([_, stats]) => stats.count >= 2) // Solo ejercicios con al menos 2 registros
+      .filter(([_, stats]) => stats.count >= 2 && stats.weights.length >= 2) // Solo ejercicios con datos suficientes
       .map(([name, stats]) => {
         // Calcular tendencia basada en los últimos vs primeros pesos
         const sortedByDate = stats.weights
@@ -164,7 +178,7 @@ export function usePerformance() {
         const avgFirst = firstHalf.reduce((sum, item) => sum + item.weight, 0) / firstHalf.length;
         const avgSecond = secondHalf.reduce((sum, item) => sum + item.weight, 0) / secondHalf.length;
 
-        const trend: 'up' | 'down' = avgSecond > avgFirst ? 'up' : 'down';
+        const trend: 'up' | 'down' = avgSecond >= avgFirst ? 'up' : 'down';
         const percentage = avgFirst > 0 
           ? Math.round(((avgSecond - avgFirst) / avgFirst) * 100)
           : 0;
@@ -184,29 +198,27 @@ export function usePerformance() {
   useEffect(() => {
     if (!user?.id) {
       setLoading(false);
+      setMetrics({
+        totalWorkouts: 0,
+        totalVolume: 0,
+        totalTime: 0,
+        personalRecords: 0,
+        weeklyVolume: [
+          { day: 'Dom', value: 0 },
+          { day: 'Lun', value: 0 },
+          { day: 'Mar', value: 0 },
+          { day: 'Mié', value: 0 },
+          { day: 'Jue', value: 0 },
+          { day: 'Vie', value: 0 },
+          { day: 'Sáb', value: 0 },
+        ],
+        recentPRs: [],
+        frequentExercises: []
+      });
       return;
     }
 
-    const subscription = supabase
-      .channel(`workout_changes_${user.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'workouts',
-        filter: `profile_id=eq.${user.id}`
-      }, () => {
-        console.log('Workout data changed, refreshing...');
-        setRefreshFlag(prev => !prev);
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'workout_exercises'
-      }, () => {
-        console.log('Exercise data changed, refreshing...');
-        setRefreshFlag(prev => !prev);
-      })
-      .subscribe();
+    let subscription: any;
 
     const fetchPerformanceData = async () => {
       try {
@@ -222,15 +234,18 @@ export function usePerformance() {
         const { data: workouts, error: workoutsError } = await supabase
           .from('workouts')
           .select(`
-            *,
+            id,
+            start_time,
+            end_time,
+            total_volume,
+            total_reps,
             workout_exercises (
               id,
               exercise_name,
               sets,
               total_volume,
               max_weight,
-              total_reps,
-              created_at
+              total_reps
             )
           `)
           .eq('profile_id', user.id)
@@ -243,6 +258,7 @@ export function usePerformance() {
         }
 
         console.log('Fetched workouts:', workouts?.length || 0);
+        console.log('Sample workout:', workouts?.[0]);
 
         // Calcular métricas básicas
         const totalWorkouts = workouts?.length || 0;
@@ -291,15 +307,40 @@ export function usePerformance() {
       }
     };
 
+    // Configurar suscripción a cambios en tiempo real
+    subscription = supabase
+      .channel(`workout_changes_${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'workouts',
+        filter: `profile_id=eq.${user.id}`
+      }, (payload) => {
+        console.log('Workout data changed:', payload);
+        setRefreshFlag(prev => !prev);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'workout_exercises'
+      }, (payload) => {
+        console.log('Exercise data changed:', payload);
+        setRefreshFlag(prev => !prev);
+      })
+      .subscribe();
+
     fetchPerformanceData();
 
     return () => {
-      supabase.removeChannel(subscription);
+      if (subscription) {
+        supabase.removeChannel(subscription);
+      }
     };
   }, [user?.id, refreshFlag]);
 
   // Función para refrescar manualmente los datos
   const refreshData = () => {
+    console.log('Manual refresh triggered');
     setRefreshFlag(prev => !prev);
   };
 
