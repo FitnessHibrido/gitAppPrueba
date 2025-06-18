@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { Crown, Medal, Search, AlertCircle } from 'lucide-react-native';
+import { Crown, Medal, Search, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface UserRanking {

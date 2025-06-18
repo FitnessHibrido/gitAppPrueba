@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { Award, Trophy, TrendingUp, Star, Clock, AlertCircle, RefreshCw } from 'lucide-react-native';
+import { Award, Trophy, TrendingUp, Star, Clock, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface Achievement {

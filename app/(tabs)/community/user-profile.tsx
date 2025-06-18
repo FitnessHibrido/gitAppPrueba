@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { Trophy, Award, Star, Calendar, MapPin, Mail, ArrowLeft, AlertCircle } from 'lucide-react-native';
+import { Trophy, Award, Star, Calendar, MapPin, Mail, ArrowLeft, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface UserProfile {

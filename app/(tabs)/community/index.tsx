@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Trophy, Users, Award, ChevronRight, Medal, Star, TrendingUp, Crown, AlertCircle } from 'lucide-react-native';
+import { Trophy, Users, Award, ChevronRight, Medal, Star, TrendingUp, Crown, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
