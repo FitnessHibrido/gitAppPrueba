@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronRight, Clock, Target, Dumbbell } from 'lucide-react-native';
+import { ChevronRight, Clock, Target, Dumbbell, Star, Users } from 'lucide-react-native';
 import { trainingPrograms } from '@/constants/programs';
 import { useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
@@ -23,18 +23,34 @@ export default function ProgramsScreen() {
   }, [selectedLevel]);
 
   const handleProgramDetails = (programId: string) => {
-    console.log('Programas disponibles:', trainingPrograms);
-    console.log('Buscando programId:', programId);
     router.push({
       pathname: '/train/program/select-week',
-      params: { programId } // Pasar el programId como parámetro
+      params: { programId }
     });
+  };
+
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'Principiante': return '#10B981';
+      case 'Intermedio': return '#F59E0B';
+      case 'Avanzado': return '#EF4444';
+      default: return '#6B7280';
+    }
+  };
+
+  const getLevelBgColor = (level: string) => {
+    switch (level) {
+      case 'Principiante': return '#ECFDF5';
+      case 'Intermedio': return '#FFFBEB';
+      case 'Avanzado': return '#FEF2F2';
+      default: return '#F3F4F6';
+    }
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Nuestros Programas</Text>
+        <Text style={styles.title}>Programas de Entrenamiento</Text>
         <Text style={styles.subtitle}>
           Encuentra el programa perfecto para alcanzar tus objetivos
         </Text>
@@ -84,8 +100,16 @@ export default function ProgramsScreen() {
                 resizeMode="cover"
               />
               <View style={styles.overlay}>
-                <View style={styles.levelBadge}>
-                  <Text style={styles.levelText}>{program.level}</Text>
+                <View style={[
+                  styles.levelBadge, 
+                  { backgroundColor: getLevelBgColor(program.level) }
+                ]}>
+                  <Text style={[
+                    styles.levelText, 
+                    { color: getLevelColor(program.level) }
+                  ]}>
+                    {program.level}
+                  </Text>
                 </View>
                 <View style={styles.programNameContainer}>
                   <Text style={styles.programName}>{program.name}</Text>
@@ -124,13 +148,21 @@ export default function ProgramsScreen() {
                 ))}
               </View>
 
-              <TouchableOpacity 
-                style={styles.detailsButton}
-                onPress={() => handleProgramDetails(program.id)}
-              >
-                <Text style={styles.detailsButtonText}>Ver Detalles</Text>
-                <ChevronRight size={20} color="#3B82F6" />
-              </TouchableOpacity>
+              <View style={styles.cardFooter}>
+                <View style={styles.ratingContainer}>
+                  <Star size={16} color="#F59E0B" fill="#F59E0B" />
+                  <Text style={styles.ratingText}>4.8</Text>
+                  <Text style={styles.ratingCount}>(124)</Text>
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.detailsButton}
+                  onPress={() => handleProgramDetails(program.id)}
+                >
+                  <Text style={styles.detailsButtonText}>Comenzar</Text>
+                  <ChevronRight size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
           </TouchableOpacity>
         ))}
@@ -142,12 +174,14 @@ export default function ProgramsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F8FAFC',
   },
   header: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 24,
     backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   title: {
     fontSize: 28,
@@ -162,35 +196,32 @@ const styles = StyleSheet.create({
   },
   filtersSection: {
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingVertical: 4,
+    paddingVertical: 16,
   },
   filtersContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 12,
     gap: 12,
   },
   filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#E2E8F0',
   },
   activeFilter: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#3B82F6',
+    backgroundColor: '#6366F1',
+    borderColor: '#6366F1',
   },
   filterText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#64748B',
   },
   activeFilterText: {
-    color: '#3B82F6',
+    color: '#FFFFFF',
   },
   programsContainer: {
     padding: 20,
@@ -199,16 +230,16 @@ const styles = StyleSheet.create({
   programCard: {
     width: CARD_WIDTH,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 16,
+    elevation: 8,
   },
   imageContainer: {
-    height: 220,
+    height: 200,
     width: '100%',
   },
   programImage: {
@@ -218,19 +249,17 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    padding: 16,
+    padding: 20,
     justifyContent: 'space-between',
   },
   levelBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
   levelText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
   programNameContainer: {
@@ -238,21 +267,21 @@ const styles = StyleSheet.create({
   },
   programName: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
   programDetails: {
-    padding: 16,
+    padding: 20,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#F1F5F9',
   },
   stat: {
     flexDirection: 'row',
@@ -273,7 +302,7 @@ const styles = StyleSheet.create({
   },
   highlightsContainer: {
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   highlight: {
     flexDirection: 'row',
@@ -283,7 +312,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#6366F1',
     marginRight: 12,
   },
   highlightText: {
@@ -291,18 +320,37 @@ const styles = StyleSheet.create({
     color: '#374151',
     flex: 1,
   },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  ratingCount: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
   detailsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#6366F1',
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 8,
-    gap: 8,
+    borderRadius: 25,
+    gap: 6,
   },
   detailsButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#3B82F6',
+    color: '#FFFFFF',
   },
 });

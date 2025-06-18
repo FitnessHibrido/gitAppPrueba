@@ -72,10 +72,9 @@ export default function LoginScreen() {
   }, []);
 
   return (
-    // Contenedor principal SIN SafeAreaView
     <View style={styles.fullScreen}>
       <ImageBackground
-        source={{ uri: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80' }}
+        source={{ uri: 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800' }}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -101,7 +100,7 @@ export default function LoginScreen() {
                   ¡Bienvenido de nuevo!
                 </Animated.Text>
                 <Animated.Text style={[styles.subtitle, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-                  Inicia sesión para continuar
+                  Inicia sesión para continuar tu progreso
                 </Animated.Text>
               </View>
 
@@ -130,7 +129,7 @@ export default function LoginScreen() {
                       editable={!loading}
                       onFocus={() => setFocusedInput('email')}
                       onBlur={() => setFocusedInput(null)}
-                      placeholderTextColor={'grey'}
+                      placeholderTextColor={'#9CA3AF'}
                     />
                   </View>
                 </View>
@@ -152,7 +151,7 @@ export default function LoginScreen() {
                       editable={!loading}
                       onFocus={() => setFocusedInput('password')}
                       onBlur={() => setFocusedInput(null)}
-                      placeholderTextColor={'grey'}
+                      placeholderTextColor={'#9CA3AF'}
                     />
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
                       {showPassword ? <EyeOff size={20} color="#6B7280" /> : <Eye size={20} color="#6B7280" />}
@@ -174,7 +173,7 @@ export default function LoginScreen() {
                   disabled={loading}
                 >
                   <Text style={styles.loginButtonText}>
-                    {loading ? 'Iniciando sesión...' : 'Iniciar Sesión →'}
+                    {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                   </Text>
                 </TouchableOpacity>
 
@@ -193,31 +192,25 @@ export default function LoginScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
   fullScreen: {
-    flex: 1,           // Ocupa todo el espacio disponible
-    width: '100%',     // Ancho completo
-    height: '100%',    // Alto completo (antes no estaba)
-    backgroundColor: '#000', // Fondo de respaldo (negro)
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000',
   },
   backgroundImage: {
-    flex: 1,           // Expande dentro de su contenedor
-    width: '100%',     // Ancho completo (antes no estaba)
+    flex: 1,
+    width: '100%',
     height: '100%',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   safeAreaContent: {
-    flex: 1,           // Ocupa todo el espacio del padre
-    width: '100%',     // Ancho completo (evita márgenes)
-    // edges: ['top', 'bottom'] (se define en el componente)
+    flex: 1,
+    width: '100%',
   },
   keyboardView: {
     flex: 1,
@@ -229,7 +222,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 40 : 20,  // 40px abajo en iPhone (notch), 20px en Android
+    top: Platform.OS === 'ios' ? 40 : 20,
     right: 20,
   },
   logo: {
@@ -255,63 +248,53 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   inputGroup: {
     marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
-    color: 'black',
+    fontWeight: '600',
+    color: '#374151',
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    width: '100%',
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 56,
   },
   inputContainerFocused: {
-    borderColor: '#d0df00',
-    shadowColor: '#d0df00',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
+    borderColor: '#6366F1',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   inputContainerError: {
     borderColor: '#DC2626',
-    shadowColor: '#DC2626',
-    backgroundColor: '#FEE2E2',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: '#FEF2F2',
   },
   input: {
     flex: 1,
-    padding: 12,
     fontSize: 16,
     color: '#111827',
-    marginLeft: 8,
+    marginLeft: 12,
   },
   eyeButton: {
     padding: 8,
@@ -321,28 +304,28 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   forgotPasswordText: {
-    color: '#111827',
+    color: '#6366F1',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   loginButton: {
-    backgroundColor: '#111827',
+    backgroundColor: '#6366F1',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   loginButtonDisabled: {
     opacity: 0.7,
   },
   loginButtonText: {
-    color: '#d0df00',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -356,19 +339,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   registerLink: {
-    color: '#d0df00',
+    color: '#6366F1',
     fontSize: 14,
-    fontWeight: '500',
-    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
   errorContainer: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FEF2F2',
     padding: 16,
     borderRadius: 8,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FECACA',
   },
   errorText: {
     color: '#DC2626',
     fontSize: 14,
+    textAlign: 'center',
   },
 });

@@ -1,16 +1,19 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { categories } from '../../../constants/videos'
+import { categories } from '../../../constants/videos';
+
+const { width } = Dimensions.get('window');
 
 export default function VideosScreen() {
   const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Categorías</Text>
+          <Text style={styles.title}>Categorías de Videos</Text>
+          <Text style={styles.subtitle}>Aprende técnicas correctas con demostraciones profesionales</Text>
         </View>
 
         <View style={styles.grid}>
@@ -38,6 +41,9 @@ export default function VideosScreen() {
               <View style={styles.cardContent}>
                 <Text style={styles.categoryTitle}>{category.title}</Text>
                 <Text style={styles.videoCount}>{category.videoCount} videos</Text>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: '60%' }]} />
+                </View>
               </View>
             </TouchableOpacity>
           ))}
@@ -47,60 +53,62 @@ export default function VideosScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
-    padding: -800,
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   header: {
     padding: 20,
     backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#111827',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
+    lineHeight: 24,
   },
   grid: {
-    padding: 10,
+    padding: 16,
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 16,
   },
   categoryCard: {
-    width: '50%',
-    padding: 10,
-    position: 'relative',
-        // Para iOS:
+    width: (width - 48) / 2,
+    height: 220,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,  // Aumenté un poco la opacidad para mejor visibilidad
-    shadowRadius: 6,
-    // Para Android:
-    elevation: 8,  // Reduje la elevación para que coincida mejor con iOS
-    // Importante para iOS:
-    overflow: 'visible', // Cambiado de 'hidden' a 'visible' para que se vea la sombra
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
   },
   categoryImage: {
     width: '100%',
-    height: 180,
-    borderRadius: 16,
+    height: 140,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    margin: 10,
-    borderRadius: 16,
+    height: 140,
   },
   iconContainer: {
     position: 'absolute',
-    top: 25,
-    left: 25,
+    top: 16,
+    left: 16,
     zIndex: 10,
   },
   iconBackground: {
@@ -110,31 +118,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   cardContent: {
-    position: 'absolute',
-    bottom: 25,
-    left: 25,
-    right: 25,
+    padding: 16,
+    flex: 1,
+    justifyContent: 'space-between',
   },
   categoryTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#111827',
     marginBottom: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   videoCount: {
     fontSize: 14,
-    color: '#F3F4F6',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#6366F1',
+    borderRadius: 2,
   },
 });
