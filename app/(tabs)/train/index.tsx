@@ -1,12 +1,15 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronRight, Dumbbell, TrendingUp, Timer, Weight } from 'lucide-react-native';
+import { ChevronRight, Dumbbell, TrendingUp, Timer, Weight, Play, Calendar, Target, Zap } from 'lucide-react-native';
 import { trainingPrograms } from '@/constants/programs';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { usePerformance } from '@/hooks/usePerformance';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
 
 interface ActiveProgram {
   id: string;
@@ -30,7 +33,6 @@ export default function TrainScreen() {
 
       try {
         setLoading(true);
-        // Obtener entrenamientos agrupados por programa
         const { data: workouts, error } = await supabase
           .from('workouts')
           .select('*')
@@ -39,7 +41,6 @@ export default function TrainScreen() {
 
         if (error) throw error;
 
-        // Agrupar workouts por programa y obtener el último de cada uno
         const programWorkouts = workouts?.reduce((acc, workout) => {
           if (!workout.program_id) return acc;
           
@@ -50,7 +51,6 @@ export default function TrainScreen() {
           return acc;
         }, {} as Record<string, any>);
 
-        // Crear lista de programas activos
         const active = Object.entries(programWorkouts || {}).map(([programId, lastWorkout]) => {
           const program = trainingPrograms.find(p => p.id === programId);
           if (!program) return null;
@@ -80,21 +80,21 @@ export default function TrainScreen() {
       value: `${metrics.totalTime}min`,
       change: '+2h esta semana',
       icon: Timer,
-      color: '#3B82F6',
-      bgColor: '#EFF6FF',
+      color: '#6366F1',
+      bgColor: '#EEF2FF',
     },
     {
       id: 2,
-      title: 'Peso Total',
+      title: 'Volumen Total',
       value: `${metrics.totalVolume.toLocaleString()}kg`,
       change: '+150kg vs anterior',
       icon: Weight,
-      color: '#22C55E',
-      bgColor: '#F0FDF4',
+      color: '#10B981',
+      bgColor: '#ECFDF5',
     },
     {
       id: 3,
-      title: 'Progreso',
+      title: 'Records',
       value: `${metrics.personalRecords} PRs`,
       change: '3 esta semana',
       icon: TrendingUp,
@@ -105,78 +105,126 @@ export default function TrainScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.welcomeText}>¡Buen trabajo!</Text>
-          <Text style={styles.subtitle}>Continúa con tu progreso</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroContent}>
+            <Text style={styles.heroGreeting}>¡Hora de entrenar!</Text>
+            <Text style={styles.heroSubtitle}>Continúa con tu progreso hacia tus objetivos</Text>
+          </View>
+          <View style={styles.heroImageContainer}>
+            <Image 
+              source={{ uri: 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=400' }}
+              style={styles.heroImage}
+            />
+          </View>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.actionButton, { backgroundColor: '#EFF6FF' }]}
-          onPress={() => router.push('/train/programs')}
-        >
-          <Dumbbell size={24} color="#3B82F6" />
-          <Text style={[styles.actionButtonText, { color: '#3B82F6' }]}>Ver Programas</Text>
-        </TouchableOpacity>
+        {/* Quick Actions */}
+        <View style={styles.quickActionsContainer}>
+          <TouchableOpacity 
+            style={[styles.quickActionButton, { backgroundColor: '#6366F1' }]}
+            onPress={() => router.push('/train/programs')}
+          >
+            <View style={styles.quickActionIcon}>
+              <Dumbbell size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.quickActionText}>Explorar Programas</Text>
+            <ChevronRight size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.quickActionButton, { backgroundColor: '#10B981' }]}
+            onPress={() => router.push('/train/builder')}
+          >
+            <View style={styles.quickActionIcon}>
+              <Play size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.quickActionText}>Entreno Libre</Text>
+            <ChevronRight size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
         
+        {/* Active Programs */}
         {activePrograms.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Entrenamientos Activos</Text>
-            
-            {activePrograms.map((program) => (
-              <TouchableOpacity 
-                key={program.id} 
-                style={styles.programCard}
-                onPress={() => router.push({
-                  pathname: '/train/program/select-week',
-                  params: { id: program.id }
-                })}
-              >
-                <Image 
-                  source={{ uri: program.image }}
-                  style={styles.programImage}
-                />
-                <View style={styles.programOverlay}>
-                  <View style={styles.levelBadge}>
-                    <Text style={styles.levelText}>{program.level}</Text>
-                  </View>
-                  <View style={styles.programInfo}>
-                    <View>
-                      <Text style={styles.programName}>{program.name}</Text>
-                      <Text style={styles.programProgress}>{program.progress}</Text>
-                      <Text style={styles.lastWorkout}>{program.lastWorkout}</Text>
-                    </View>
-                    <ChevronRight size={24} color="#FFFFFF" />
-                  </View>
-                </View>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Entrenamientos Activos</Text>
+              <TouchableOpacity onPress={() => router.push('/train/programs')}>
+                <Text style={styles.sectionAction}>Ver todos</Text>
               </TouchableOpacity>
-            ))}
+            </View>
+            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.programsScroll}>
+              {activePrograms.map((program) => (
+                <TouchableOpacity 
+                  key={program.id} 
+                  style={styles.programCard}
+                  onPress={() => router.push({
+                    pathname: '/train/program/select-week',
+                    params: { id: program.id }
+                  })}
+                >
+                  <Image 
+                    source={{ uri: program.image }}
+                    style={styles.programCardImage}
+                  />
+                  <View style={styles.programCardOverlay}>
+                    <View style={styles.programCardBadge}>
+                      <Text style={styles.programCardBadgeText}>{program.level}</Text>
+                    </View>
+                    <View style={styles.programCardContent}>
+                      <Text style={styles.programCardTitle}>{program.name}</Text>
+                      <Text style={styles.programCardProgress}>{program.progress}</Text>
+                      <Text style={styles.programCardLastWorkout}>{program.lastWorkout}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         )}
 
-        <TouchableOpacity 
-          style={styles.performanceSection}
-          onPress={() => router.push('/train/performance')}
-        >
-          <View style={styles.performanceHeader}>
-            <Text style={styles.sectionTitle}>Vista Rápida de Rendimiento</Text>
-            <ChevronRight size={20} color="#6B7280" />
-          </View>
+        {/* Performance Overview */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={styles.performanceHeader}
+            onPress={() => router.push('/train/performance')}
+          >
+            <Text style={styles.sectionTitle}>Resumen de Rendimiento</Text>
+            <View style={styles.performanceHeaderAction}>
+              <Text style={styles.sectionAction}>Ver detalles</Text>
+              <ChevronRight size={16} color="#6B7280" />
+            </View>
+          </TouchableOpacity>
           
-          <View style={styles.metricsContainer}>
+          <View style={styles.metricsGrid}>
             {performanceMetrics.map((metric) => (
               <View 
                 key={metric.id} 
                 style={[styles.metricCard, { backgroundColor: metric.bgColor }]}
               >
-                <metric.icon size={24} color={metric.color} />
+                <View style={[styles.metricIconContainer, { backgroundColor: metric.color }]}>
+                  <metric.icon size={20} color="#FFFFFF" />
+                </View>
                 <Text style={[styles.metricValue, { color: metric.color }]}>{metric.value}</Text>
                 <Text style={styles.metricTitle}>{metric.title}</Text>
                 <Text style={styles.metricChange}>{metric.change}</Text>
               </View>
             ))}
           </View>
-        </TouchableOpacity>
+        </View>
+
+        {/* Motivation Section */}
+        <View style={styles.motivationSection}>
+          <View style={styles.motivationContent}>
+            <Zap size={32} color="#F59E0B" />
+            <Text style={styles.motivationTitle}>¡Sigue así!</Text>
+            <Text style={styles.motivationText}>
+              Cada entrenamiento te acerca más a tus objetivos. La constancia es la clave del éxito.
+            </Text>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -185,127 +233,215 @@ export default function TrainScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F8FAFC',
   },
-  header: {
-    padding: 20,
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  heroSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
     backgroundColor: '#FFFFFF',
+    marginBottom: 16,
   },
-  welcomeText: {
+  heroContent: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  heroGreeting: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  subtitle: {
+  heroSubtitle: {
     fontSize: 16,
     color: '#6B7280',
+    lineHeight: 24,
   },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 20,
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  section: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 16,
-  },
-  programCard: {
-    height: 200,
-    borderRadius: 16,
+  heroImageContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     overflow: 'hidden',
-    marginBottom: 16,
-    backgroundColor: '#000000',
   },
-  programImage: {
+  heroImage: {
     width: '100%',
     height: '100%',
-    opacity: 0.7,
   },
-  programOverlay: {
-    ...StyleSheet.absoluteFillObject,
+  quickActionsContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    gap: 12,
+  },
+  quickActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  levelBadge: {
+  quickActionIcon: {
+    marginRight: 16,
+  },
+  quickActionText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  sectionAction: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6366F1',
+  },
+  programsScroll: {
+    paddingLeft: 20,
+    gap: 16,
+  },
+  programCard: {
+    width: 280,
+    height: 180,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  programCardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  programCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    padding: 20,
+    justifyContent: 'space-between',
+  },
+  programCardBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    marginBottom: 'auto',
+    backdropFilter: 'blur(10px)',
   },
-  levelText: {
+  programCardBadgeText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
   },
-  programInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+  programCardContent: {
+    alignSelf: 'stretch',
   },
-  programName: {
-    fontSize: 24,
+  programCardTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 4,
   },
-  programProgress: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  lastWorkout: {
+  programCardProgress: {
     fontSize: 14,
     color: '#E5E7EB',
+    marginBottom: 2,
   },
-  performanceSection: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    marginTop: 8,
+  programCardLastWorkout: {
+    fontSize: 12,
+    color: '#D1D5DB',
   },
   performanceHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
     marginBottom: 16,
   },
-  metricsContainer: {
+  performanceHeaderAction: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
     gap: 12,
   },
   metricCard: {
     flex: 1,
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'flex-start',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+  },
+  metricIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   metricValue: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 8,
     marginBottom: 4,
   },
   metricTitle: {
     fontSize: 14,
     color: '#374151',
     marginBottom: 4,
+    textAlign: 'center',
   },
   metricChange: {
     fontSize: 12,
     color: '#6B7280',
+    textAlign: 'center',
+  },
+  motivationSection: {
+    marginHorizontal: 20,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+  },
+  motivationContent: {
+    alignItems: 'center',
+  },
+  motivationTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#92400E',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  motivationText: {
+    fontSize: 16,
+    color: '#78350F',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
