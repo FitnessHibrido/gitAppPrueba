@@ -23,13 +23,16 @@ interface ActiveProgram {
 export default function TrainScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { metrics } = usePerformance();
+  const { metrics, loading: performanceLoading } = usePerformance();
   const [activePrograms, setActivePrograms] = useState<ActiveProgram[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchActivePrograms = async () => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true);
@@ -78,7 +81,7 @@ export default function TrainScreen() {
       id: 1,
       title: 'Tiempo Total',
       value: `${metrics.totalTime}min`,
-      change: '+2h esta semana',
+      change: 'Esta semana',
       icon: Timer,
       color: '#6366F1',
       bgColor: '#EEF2FF',
@@ -87,7 +90,7 @@ export default function TrainScreen() {
       id: 2,
       title: 'Volumen Total',
       value: `${metrics.totalVolume.toLocaleString()}kg`,
-      change: '+150kg vs anterior',
+      change: 'Últimos 30 días',
       icon: Weight,
       color: '#10B981',
       bgColor: '#ECFDF5',
@@ -96,12 +99,32 @@ export default function TrainScreen() {
       id: 3,
       title: 'Records',
       value: `${metrics.personalRecords} PRs`,
-      change: '3 esta semana',
+      change: 'Nuevos records',
       icon: TrendingUp,
       color: '#F59E0B',
       bgColor: '#FFFBEB',
     },
   ];
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loginPrompt}>
+          <Dumbbell size={48} color="#D1D5DB" />
+          <Text style={styles.loginPromptTitle}>Inicia sesión para entrenar</Text>
+          <Text style={styles.loginPromptText}>
+            Accede a tu cuenta para ver tus programas y seguir tu progreso
+          </Text>
+          <TouchableOpacity 
+            style={styles.loginButton}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -191,28 +214,34 @@ export default function TrainScreen() {
             style={styles.performanceHeader}
             onPress={() => router.push('/train/performance')}
           >
-            <Text style={styles.sectionTitle}>Resumen de Rendimiento</Text>
+            <Text style={styles.sectionTitle}>Tu Rendimiento</Text>
             <View style={styles.performanceHeaderAction}>
               <Text style={styles.sectionAction}>Ver detalles</Text>
               <ChevronRight size={16} color="#6B7280" />
             </View>
           </TouchableOpacity>
           
-          <View style={styles.metricsGrid}>
-            {performanceMetrics.map((metric) => (
-              <View 
-                key={metric.id} 
-                style={[styles.metricCard, { backgroundColor: metric.bgColor }]}
-              >
-                <View style={[styles.metricIconContainer, { backgroundColor: metric.color }]}>
-                  <metric.icon size={20} color="#FFFFFF" />
+          {performanceLoading ? (
+            <View style={styles.loadingMetrics}>
+              <Text style={styles.loadingText}>Cargando estadísticas...</Text>
+            </View>
+          ) : (
+            <View style={styles.metricsGrid}>
+              {performanceMetrics.map((metric) => (
+                <View 
+                  key={metric.id} 
+                  style={[styles.metricCard, { backgroundColor: metric.bgColor }]}
+                >
+                  <View style={[styles.metricIconContainer, { backgroundColor: metric.color }]}>
+                    <metric.icon size={20} color="#FFFFFF" />
+                  </View>
+                  <Text style={[styles.metricValue, { color: metric.color }]}>{metric.value}</Text>
+                  <Text style={styles.metricTitle}>{metric.title}</Text>
+                  <Text style={styles.metricChange}>{metric.change}</Text>
                 </View>
-                <Text style={[styles.metricValue, { color: metric.color }]}>{metric.value}</Text>
-                <Text style={styles.metricTitle}>{metric.title}</Text>
-                <Text style={styles.metricChange}>{metric.change}</Text>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Motivation Section */}
@@ -237,6 +266,37 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+  },
+  loginPrompt: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loginPromptTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  loginPromptText: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  loginButton: {
+    backgroundColor: '#6366F1',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   heroSection: {
     flexDirection: 'row',
@@ -383,6 +443,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  loadingMetrics: {
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
   },
   metricsGrid: {
     flexDirection: 'row',
