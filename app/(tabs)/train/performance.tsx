@@ -1,52 +1,40 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronRight, TrendingUp, Clock, Weight, Calendar, Trophy, Target, Dumbbell, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react-native';
+import { ChevronRight, TrendingUp, Clock, Weight, Calendar, Trophy, Target, Dumbbell, ArrowUp, ArrowDown, RefreshCw, AlertCircle } from 'lucide-react-native';
 import { usePerformance } from '@/hooks/usePerformance';
 import { useAuth } from '@/context/AuthContext';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 const CHART_WIDTH = width - 40;
 
 export default function PerformanceScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const { metrics, loading, error, refreshData } = usePerformance();
   const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     refreshData();
-    setTimeout(() => setRefreshing(false), 1000);
-  };
+    setTimeout(() => setRefreshing(false), 1500);
+  }, [refreshData]);
 
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Debes iniciar sesión para ver tus estadísticas</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (loading && !refreshing) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text>Cargando estadísticas...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={refreshData}>
-            <RefreshCw size={20} color="#3B82F6" />
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+        <View style={styles.noAuthContainer}>
+          <AlertCircle size={48} color="#6B7280" />
+          <Text style={styles.noAuthTitle}>Inicia sesión para ver tus estadísticas</Text>
+          <Text style={styles.noAuthText}>
+            Necesitas iniciar sesión para acceder a tus datos de rendimiento y progreso
+          </Text>
+          <TouchableOpacity 
+            style={styles.loginButton}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -60,7 +48,12 @@ export default function PerformanceScreen() {
       <ScrollView 
         style={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            colors={['#6366F1']}
+            tintColor="#6366F1"
+          />
         }
       >
         {/* Header con información del usuario */}
@@ -69,143 +62,165 @@ export default function PerformanceScreen() {
           <Text style={styles.headerSubtitle}>Últimos 30 días</Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Resumen Mensual</Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <View style={[styles.iconContainer, { backgroundColor: '#EFF6FF' }]}>
-                <Calendar size={24} color="#3B82F6" />
-              </View>
-              <Text style={styles.statValue}>{metrics.totalWorkouts}</Text>
-              <Text style={styles.statLabel}>Entrenos</Text>
-            </View>
-            <View style={styles.statCard}>
-              <View style={[styles.iconContainer, { backgroundColor: '#F0FDF4' }]}>
-                <Weight size={24} color="#22C55E" />
-              </View>
-              <Text style={styles.statValue}>{metrics.totalVolume.toLocaleString()}kg</Text>
-              <Text style={styles.statLabel}>Volumen</Text>
-            </View>
-            <View style={styles.statCard}>
-              <View style={[styles.iconContainer, { backgroundColor: '#FEF3C7' }]}>
-                <Clock size={24} color="#F59E0B" />
-              </View>
-              <Text style={styles.statValue}>{metrics.totalTime}min</Text>
-              <Text style={styles.statLabel}>Tiempo</Text>
-            </View>
-            <View style={styles.statCard}>
-              <View style={[styles.iconContainer, { backgroundColor: '#FCE7F3' }]}>
-                <Trophy size={24} color="#EC4899" />
-              </View>
-              <Text style={styles.statValue}>{metrics.personalRecords}</Text>
-              <Text style={styles.statLabel}>PRs</Text>
-            </View>
+        {loading && !refreshing ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#6366F1" />
+            <Text style={styles.loadingText}>Cargando tus estadísticas...</Text>
           </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Volumen Semanal</Text>
-          <Text style={styles.sectionSubtitle}>Semana actual</Text>
-          <View style={styles.chartContainer}>
-            {metrics.weeklyVolume.map((day) => (
-              <View key={day.day} style={styles.barContainer}>
-                <View style={styles.barWrapper}>
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        height: `${Math.max((day.value / maxVolume) * 100, 2)}%`,
-                        backgroundColor: day.value > 0 ? '#3B82F6' : '#E5E7EB'
-                      }
-                    ]}
-                  />
-                </View>
-                <Text style={styles.barLabel}>{day.day}</Text>
-                <Text style={styles.barValue}>
-                  {day.value > 0 ? `${(day.value / 1000).toFixed(1)}k` : '-'}
-                </Text>
-              </View>
-            ))}
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <AlertCircle size={48} color="#EF4444" />
+            <Text style={styles.errorTitle}>No pudimos cargar tus datos</Text>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={refreshData}>
+              <RefreshCw size={20} color="#3B82F6" />
+              <Text style={styles.retryButtonText}>Reintentar</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.weeklyTotal}>
-            <Text style={styles.weeklyTotalLabel}>Total semanal:</Text>
-            <Text style={styles.weeklyTotalValue}>
-              {metrics.weeklyVolume.reduce((sum, day) => sum + day.value, 0).toLocaleString()}kg
-            </Text>
-          </View>
-        </View>
-
-        {metrics.recentPRs.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Records Personales Recientes</Text>
-            {metrics.recentPRs.map((pr, index) => (
-              <View key={index} style={styles.prCard}>
-                <View style={styles.prHeader}>
-                  <Text style={styles.prExercise}>{pr.exercise}</Text>
-                  <View style={styles.prBadge}>
-                    <Text style={styles.prImprovement}>+{pr.improvement}kg</Text>
-                  </View>
-                </View>
-                <View style={styles.prDetails}>
-                  <View style={styles.prDetail}>
-                    <Weight size={16} color="#6B7280" />
-                    <Text style={styles.prDetailText}>{pr.weight}kg</Text>
-                  </View>
-                  <View style={styles.prDetail}>
-                    <Calendar size={16} color="#6B7280" />
-                    <Text style={styles.prDetailText}>
-                      {new Date(pr.date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {metrics.frequentExercises.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ejercicios Frecuentes</Text>
-            {metrics.frequentExercises.map((exercise, index) => (
-              <View key={index} style={styles.exerciseCard}>
-                <View style={styles.exerciseIcon}>
-                  <Dumbbell size={24} color="#3B82F6" />
-                </View>
-                <View style={styles.exerciseInfo}>
-                  <Text style={styles.exerciseName}>{exercise.name}</Text>
-                  <View style={styles.exerciseStats}>
-                    <Text style={styles.exerciseStat}>{exercise.sets} series</Text>
-                    <Text style={styles.exerciseStat}>•</Text>
-                    <Text style={styles.exerciseStat}>Media: {exercise.avgWeight}kg</Text>
-                  </View>
-                </View>
-                <View style={styles.trendContainer}>
-                  {exercise.trend === 'up' ? (
-                    <ArrowUp size={20} color="#22C55E" />
-                  ) : (
-                    <ArrowDown size={20} color="#EF4444" />
-                  )}
-                  <Text style={[
-                    styles.trendText,
-                    { color: exercise.trend === 'up' ? '#22C55E' : '#EF4444' }
-                  ]}>
-                    {exercise.percentage}%
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Mensaje si no hay datos */}
-        {metrics.totalWorkouts === 0 && (
+        ) : metrics.totalWorkouts === 0 ? (
           <View style={styles.emptyState}>
             <Dumbbell size={48} color="#D1D5DB" />
             <Text style={styles.emptyStateTitle}>¡Comienza a entrenar!</Text>
             <Text style={styles.emptyStateText}>
               Completa tu primer entrenamiento para ver tus estadísticas aquí
             </Text>
+            <TouchableOpacity 
+              style={styles.startWorkoutButton}
+              onPress={() => router.push('/train')}
+            >
+              <Text style={styles.startWorkoutButtonText}>Ir a Entrenar</Text>
+            </TouchableOpacity>
           </View>
+        ) : (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Resumen Mensual</Text>
+              <View style={styles.statsGrid}>
+                <View style={styles.statCard}>
+                  <View style={[styles.iconContainer, { backgroundColor: '#EFF6FF' }]}>
+                    <Calendar size={24} color="#3B82F6" />
+                  </View>
+                  <Text style={styles.statValue}>{metrics.totalWorkouts}</Text>
+                  <Text style={styles.statLabel}>Entrenos</Text>
+                </View>
+                <View style={styles.statCard}>
+                  <View style={[styles.iconContainer, { backgroundColor: '#F0FDF4' }]}>
+                    <Weight size={24} color="#22C55E" />
+                  </View>
+                  <Text style={styles.statValue}>{metrics.totalVolume.toLocaleString()}kg</Text>
+                  <Text style={styles.statLabel}>Volumen</Text>
+                </View>
+                <View style={styles.statCard}>
+                  <View style={[styles.iconContainer, { backgroundColor: '#FEF3C7' }]}>
+                    <Clock size={24} color="#F59E0B" />
+                  </View>
+                  <Text style={styles.statValue}>{metrics.totalTime}min</Text>
+                  <Text style={styles.statLabel}>Tiempo</Text>
+                </View>
+                <View style={styles.statCard}>
+                  <View style={[styles.iconContainer, { backgroundColor: '#FCE7F3' }]}>
+                    <Trophy size={24} color="#EC4899" />
+                  </View>
+                  <Text style={styles.statValue}>{metrics.personalRecords}</Text>
+                  <Text style={styles.statLabel}>PRs</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Volumen Semanal</Text>
+              <Text style={styles.sectionSubtitle}>Semana actual</Text>
+              <View style={styles.chartContainer}>
+                {metrics.weeklyVolume.map((day) => (
+                  <View key={day.day} style={styles.barContainer}>
+                    <View style={styles.barWrapper}>
+                      <View
+                        style={[
+                          styles.bar,
+                          {
+                            height: `${Math.max((day.value / maxVolume) * 100, 2)}%`,
+                            backgroundColor: day.value > 0 ? '#3B82F6' : '#E5E7EB'
+                          }
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.barLabel}>{day.day}</Text>
+                    <Text style={styles.barValue}>
+                      {day.value > 0 ? `${(day.value / 1000).toFixed(1)}k` : '-'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.weeklyTotal}>
+                <Text style={styles.weeklyTotalLabel}>Total semanal:</Text>
+                <Text style={styles.weeklyTotalValue}>
+                  {metrics.weeklyVolume.reduce((sum, day) => sum + day.value, 0).toLocaleString()}kg
+                </Text>
+              </View>
+            </View>
+
+            {metrics.recentPRs.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Records Personales Recientes</Text>
+                {metrics.recentPRs.map((pr, index) => (
+                  <View key={index} style={styles.prCard}>
+                    <View style={styles.prHeader}>
+                      <Text style={styles.prExercise}>{pr.exercise}</Text>
+                      <View style={styles.prBadge}>
+                        <Text style={styles.prImprovement}>+{pr.improvement}kg</Text>
+                      </View>
+                    </View>
+                    <View style={styles.prDetails}>
+                      <View style={styles.prDetail}>
+                        <Weight size={16} color="#6B7280" />
+                        <Text style={styles.prDetailText}>{pr.weight}kg</Text>
+                      </View>
+                      <View style={styles.prDetail}>
+                        <Calendar size={16} color="#6B7280" />
+                        <Text style={styles.prDetailText}>
+                          {new Date(pr.date).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {metrics.frequentExercises.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Ejercicios Frecuentes</Text>
+                {metrics.frequentExercises.map((exercise, index) => (
+                  <View key={index} style={styles.exerciseCard}>
+                    <View style={styles.exerciseIcon}>
+                      <Dumbbell size={24} color="#3B82F6" />
+                    </View>
+                    <View style={styles.exerciseInfo}>
+                      <Text style={styles.exerciseName}>{exercise.name}</Text>
+                      <View style={styles.exerciseStats}>
+                        <Text style={styles.exerciseStat}>{exercise.sets} series</Text>
+                        <Text style={styles.exerciseStat}>•</Text>
+                        <Text style={styles.exerciseStat}>Media: {exercise.avgWeight}kg</Text>
+                      </View>
+                    </View>
+                    <View style={styles.trendContainer}>
+                      {exercise.trend === 'up' ? (
+                        <ArrowUp size={20} color="#22C55E" />
+                      ) : (
+                        <ArrowDown size={20} color="#EF4444" />
+                      )}
+                      <Text style={[
+                        styles.trendText,
+                        { color: exercise.trend === 'up' ? '#22C55E' : '#EF4444' }
+                      ]}>
+                        {exercise.percentage}%
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -218,36 +233,79 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  noAuthContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    padding: 40,
+  },
+  noAuthTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  noAuthText: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  loginButton: {
+    backgroundColor: '#6366F1',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    padding: 40,
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    padding: 20,
+    justifyContent: 'center',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 8,
   },
   errorText: {
-    color: '#DC2626',
+    color: '#6B7280',
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
+    lineHeight: 24,
   },
   retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EFF6FF',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderRadius: 8,
     gap: 8,
   },
   retryButtonText: {
     color: '#3B82F6',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   header: {
@@ -482,5 +540,17 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
+    marginBottom: 24,
+  },
+  startWorkoutButton: {
+    backgroundColor: '#6366F1',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  startWorkoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
