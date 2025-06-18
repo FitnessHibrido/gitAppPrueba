@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
-import { Dumbbell, GraduationCap, User, Users } from 'lucide-react-native';
+import { Dumbbell, GraduationCap, User } from 'lucide-react-native';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions } from 'react-native';
 import { usePathname } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -50,9 +50,6 @@ export default function TabLayout() {
       setShowOnboarding(false);
     } else if (pathname.includes('learn')) {
       setHighlightTab('learn');
-      setShowOnboarding(false);
-    } else if (pathname.includes('community')) {
-      setHighlightTab('community');
       setShowOnboarding(false);
     }
   }, [pathname]);
@@ -136,20 +133,6 @@ export default function TabLayout() {
             tabBarIcon: ({ color, size, focused }) => (
               <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
                 <GraduationCap
-                  size={size}
-                  color={color}
-                />
-              </View>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="community"
-          options={{
-            title: 'Comunidad',
-            tabBarIcon: ({ color, size, focused }) => (
-              <View style={[styles.tabIconContainer, focused && styles.tabIconFocused]}>
-                <Users
                   size={size}
                   color={color}
                 />

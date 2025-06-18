@@ -36,7 +36,15 @@ export function usePerformance() {
     totalVolume: 0,
     totalTime: 0,
     personalRecords: 0,
-    weeklyVolume: [],
+    weeklyVolume: [
+      { day: 'Dom', value: 0 },
+      { day: 'Lun', value: 0 },
+      { day: 'Mar', value: 0 },
+      { day: 'Mié', value: 0 },
+      { day: 'Jue', value: 0 },
+      { day: 'Vie', value: 0 },
+      { day: 'Sáb', value: 0 },
+    ],
     recentPRs: [],
     frequentExercises: []
   });
