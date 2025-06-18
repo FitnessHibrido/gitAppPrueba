@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Clock, Dumbbell, X, Plus, ChevronRight, Timer, Pause, Play } from 'lucide-react-native';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function BuilderScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { user } = useAuth();
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(true);
@@ -23,6 +24,21 @@ export default function BuilderScreen() {
     }
     return () => clearInterval(interval);
   }, [isRunning]);
+
+  // Check for exercise selection from the selection screen
+  useEffect(() => {
+    if (params.selectedExercise) {
+      try {
+        const exercise = JSON.parse(params.selectedExercise as string);
+        setSelectedExercises(prev => [...prev, {
+          ...exercise,
+          sets: [{ reps: '', weight: '', rir: '' }]
+        }]);
+      } catch (error) {
+        console.error('Error parsing selected exercise:', error);
+      }
+    }
+  }, [params.selectedExercise]);
 
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -171,185 +187,167 @@ export default function BuilderScreen() {
     );
   };
 
-  // Mock function to simulate adding an exercise from the selection screen
-  // In a real app, this would be handled through state management or context
-  useEffect(() => {
-    const mockAddExerciseFromSelection = () => {
-      // This is just for demonstration - in a real app, you'd use a proper state management solution
-      const unsubscribe = router.addListener('focus', () => {
-        // Check if we're coming back from the exercise selection screen
-        const params = router.getState()?.routes?.[router.getState()?.routes?.length - 1]?.params;
-        if (params?.selectedExercise) {
-          const exercise = JSON.parse(params.selectedExercise);
-          setSelectedExercises(prev => [...prev, {
-            ...exercise,
-            sets: [{ reps: '', weight: '', rir: '' }]
-          }]);
-        }
-      });
-      
-      return () => unsubscribe();
-    };
-    
-    mockAddExerciseFromSelection();
-  }, [router]);
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* Timer */}
-      <View style={styles.timerContainer}>
-        <View style={styles.timer}>
-          <Timer size={20} color="#3B82F6" />
-          <Text style={styles.timerText}>{formatTime(time)}</Text>
-          <TouchableOpacity
-            style={styles.timerButton}
-            onPress={() => setIsRunning(!isRunning)}
-          >
-            {isRunning ? (
-              <Pause size={20} color="#FFFFFF" />
-            ) : (
-              <Play size={20} color="#FFFFFF" />
-            )}
-          </TouchableOpacity>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        {/* Timer */}
+        <View style={styles.timerContainer}>
+          <View style={styles.timer}>
+            <Timer size={20} color="#3B82F6" />
+            <Text style={styles.timerText}>{formatTime(time)}</Text>
+            <TouchableOpacity
+              style={styles.timerButton}
+              onPress={() => setIsRunning(!isRunning)}
+            >
+              {isRunning ? (
+                <Pause size={20} color="#FFFFFF" />
+              ) : (
+                <Play size={20} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.stats}>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Volumen</Text>
-          <Text style={styles.statValue}>
-            {selectedExercises.reduce((total, exercise) => {
-              return total + exercise.sets.reduce((setTotal, set) => {
-                return setTotal + (parseInt(set.reps) || 0) * (parseFloat(set.weight) || 0);
-              }, 0);
-            }, 0)} kg
-          </Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Series</Text>
-          <Text style={styles.statValue}>
-            {selectedExercises.reduce((total, exercise) => {
-              return total + exercise.sets.length;
-            }, 0)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        {selectedExercises.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Dumbbell size={32} color="#D1D5DB" />
-            <Text style={styles.emptyStateText}>Empezar</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Agrega un ejercicio para empezar tu entrenamiento
+        <View style={styles.stats}>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Volumen</Text>
+            <Text style={styles.statValue}>
+              {selectedExercises.reduce((total, exercise) => {
+                return total + exercise.sets.reduce((setTotal, set) => {
+                  return setTotal + (parseInt(set.reps) || 0) * (parseFloat(set.weight) || 0);
+                }, 0);
+              }, 0)} kg
             </Text>
           </View>
-        ) : (
-          <FlatList
-            data={selectedExercises}
-            keyExtractor={(item, index) => `${item.id}-${index}`}
-            renderItem={({ item, index: exerciseIndex }) => (
-              <View style={styles.exerciseCard}>
-                <View style={styles.exerciseHeader}>
-                  <Text style={styles.exerciseName}>{item.name}</Text>
-                  <TouchableOpacity onPress={() => removeExercise(exerciseIndex)}>
-                    <X size={20} color="#EF4444" />
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Series</Text>
+            <Text style={styles.statValue}>
+              {selectedExercises.reduce((total, exercise) => {
+                return total + exercise.sets.length;
+              }, 0)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.content}>
+          {selectedExercises.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Dumbbell size={32} color="#D1D5DB" />
+              <Text style={styles.emptyStateText}>Empezar</Text>
+              <Text style={styles.emptyStateSubtext}>
+                Agrega un ejercicio para empezar tu entrenamiento
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={selectedExercises}
+              keyExtractor={(item, index) => `${item.id}-${index}`}
+              renderItem={({ item, index: exerciseIndex }) => (
+                <View style={styles.exerciseCard}>
+                  <View style={styles.exerciseHeader}>
+                    <Text style={styles.exerciseName}>{item.name}</Text>
+                    <TouchableOpacity onPress={() => removeExercise(exerciseIndex)}>
+                      <X size={20} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+                  
+                  {item.sets.map((set, setIndex) => (
+                    <View key={setIndex} style={styles.setRow}>
+                      <View style={styles.setNumber}>
+                        <Text style={styles.setNumberText}>{setIndex + 1}</Text>
+                      </View>
+                      <View style={styles.setInputs}>
+                        <View style={styles.inputContainer}>
+                          <Text style={styles.inputLabel}>Reps</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={set.reps}
+                            onChangeText={(value) => updateSetData(exerciseIndex, setIndex, 'reps', value)}
+                            keyboardType="numeric"
+                            placeholder="0"
+                          />
+                        </View>
+                        
+                        <View style={styles.inputContainer}>
+                          <Text style={styles.inputLabel}>Peso (kg)</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={set.weight}
+                            onChangeText={(value) => updateSetData(exerciseIndex, setIndex, 'weight', value)}
+                            keyboardType="numeric"
+                            placeholder="0"
+                          />
+                        </View>
+                        
+                        <View style={styles.inputContainer}>
+                          <Text style={styles.inputLabel}>RIR</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={set.rir}
+                            onChangeText={(value) => updateSetData(exerciseIndex, setIndex, 'rir', value)}
+                            keyboardType="numeric"
+                            placeholder="0"
+                          />
+                        </View>
+                        
+                        {item.sets.length > 1 && (
+                          <TouchableOpacity 
+                            style={styles.removeSetButton}
+                            onPress={() => removeSet(exerciseIndex, setIndex)}
+                          >
+                            <X size={16} color="#EF4444" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                  
+                  <TouchableOpacity 
+                    style={styles.addSetButton}
+                    onPress={() => addSet(exerciseIndex)}
+                  >
+                    <Plus size={16} color="#3B82F6" />
+                    <Text style={styles.addSetButtonText}>Añadir Serie</Text>
                   </TouchableOpacity>
                 </View>
-                
-                {item.sets.map((set, setIndex) => (
-                  <View key={setIndex} style={styles.setRow}>
-                    <View style={styles.setNumber}>
-                      <Text style={styles.setNumberText}>{setIndex + 1}</Text>
-                    </View>
-                    <View style={styles.setInputs}>
-                      <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Reps</Text>
-                        <TextInput
-                          style={styles.input}
-                          value={set.reps}
-                          onChangeText={(value) => updateSetData(exerciseIndex, setIndex, 'reps', value)}
-                          keyboardType="numeric"
-                          placeholder="0"
-                        />
-                      </View>
-                      
-                      <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Peso (kg)</Text>
-                        <TextInput
-                          style={styles.input}
-                          value={set.weight}
-                          onChangeText={(value) => updateSetData(exerciseIndex, setIndex, 'weight', value)}
-                          keyboardType="numeric"
-                          placeholder="0"
-                        />
-                      </View>
-                      
-                      <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>RIR</Text>
-                        <TextInput
-                          style={styles.input}
-                          value={set.rir}
-                          onChangeText={(value) => updateSetData(exerciseIndex, setIndex, 'rir', value)}
-                          keyboardType="numeric"
-                          placeholder="0"
-                        />
-                      </View>
-                      
-                      {item.sets.length > 1 && (
-                        <TouchableOpacity 
-                          style={styles.removeSetButton}
-                          onPress={() => removeSet(exerciseIndex, setIndex)}
-                        >
-                          <X size={16} color="#EF4444" />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                ))}
-                
-                <TouchableOpacity 
-                  style={styles.addSetButton}
-                  onPress={() => addSet(exerciseIndex)}
-                >
-                  <Plus size={16} color="#3B82F6" />
-                  <Text style={styles.addSetButtonText}>Añadir Serie</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            ListFooterComponent={
-              <View style={styles.footerPadding} />
-            }
-          />
-        )}
-      </View>
-
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={addExercise}
-        >
-          <Plus size={20} color="#FFFFFF" />
-          <Text style={styles.addButtonText}>Agregar Ejercicio</Text>
-        </TouchableOpacity>
-
-        <View style={styles.bottomButtons}>
-          <TouchableOpacity 
-            style={styles.finishButton}
-            onPress={handleFinishWorkout}
-          >
-            <Text style={styles.finishButtonText}>Finalizar Entreno</Text>
-            <ChevronRight size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.discardButton}
-            onPress={handleDiscardWorkout}
-          >
-            <Text style={styles.discardButtonText}>Descartar Entreno</Text>
-          </TouchableOpacity>
+              )}
+              ListFooterComponent={
+                <View style={styles.footerPadding} />
+              }
+            />
+          )}
         </View>
-      </View>
+
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={addExercise}
+          >
+            <Plus size={20} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Agregar Ejercicio</Text>
+          </TouchableOpacity>
+
+          <View style={styles.bottomButtons}>
+            <TouchableOpacity 
+              style={styles.finishButton}
+              onPress={handleFinishWorkout}
+            >
+              <Text style={styles.finishButtonText}>Finalizar Entreno</Text>
+              <ChevronRight size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.discardButton}
+              onPress={handleDiscardWorkout}
+            >
+              <Text style={styles.discardButtonText}>Descartar Entreno</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

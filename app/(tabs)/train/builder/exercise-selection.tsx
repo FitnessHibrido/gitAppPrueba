@@ -1,28 +1,28 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, Plus, Dumbbell } from 'lucide-react-native';
+import { Search, Plus, Dumbbell, RefreshCw } from 'lucide-react-native';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 // Fallback exercise data in case the database fetch fails
 const fallbackExercises = [
-  { id: 1, name: 'Sentadilla', muscle: 'Piernas' },
-  { id: 2, name: 'Press Banca', muscle: 'Pecho' },
-  { id: 3, name: 'Peso Muerto', muscle: 'Espalda' },
-  { id: 4, name: 'Press Militar', muscle: 'Hombros' },
-  { id: 5, name: 'Curl de Bíceps', muscle: 'Brazos' },
-  { id: 6, name: 'Extensiones de Tríceps', muscle: 'Brazos' },
-  { id: 7, name: 'Remo', muscle: 'Espalda' },
-  { id: 8, name: 'Elevaciones Laterales', muscle: 'Hombros' },
-  { id: 9, name: 'Zancadas', muscle: 'Piernas' },
-  { id: 10, name: 'Crunch', muscle: 'Abdominales' },
+  { id: '1', name: 'Sentadilla', muscle: 'Piernas' },
+  { id: '2', name: 'Press Banca', muscle: 'Pecho' },
+  { id: '3', name: 'Peso Muerto', muscle: 'Espalda' },
+  { id: '4', name: 'Press Militar', muscle: 'Hombros' },
+  { id: '5', name: 'Curl de Bíceps', muscle: 'Brazos' },
+  { id: '6', name: 'Extensiones de Tríceps', muscle: 'Brazos' },
+  { id: '7', name: 'Remo', muscle: 'Espalda' },
+  { id: '8', name: 'Elevaciones Laterales', muscle: 'Hombros' },
+  { id: '9', name: 'Zancadas', muscle: 'Piernas' },
+  { id: '10', name: 'Crunch', muscle: 'Abdominales' },
 ];
 
 export default function ExerciseSelectionScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [exercises, setExercises] = useState([]);
+  const [exercises, setExercises] = useState(fallbackExercises);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -73,11 +73,11 @@ export default function ExerciseSelectionScreen() {
   );
 
   const handleSelectExercise = (exercise) => {
-    router.back();
     // Pass the selected exercise back to the builder screen
-    // This would typically be done through a state management solution or context
-    // For simplicity, we'll use a mock implementation
-    console.log('Selected exercise:', exercise);
+    router.push({
+      pathname: '/train/builder',
+      params: { selectedExercise: JSON.stringify(exercise) }
+    });
   };
 
   return (
