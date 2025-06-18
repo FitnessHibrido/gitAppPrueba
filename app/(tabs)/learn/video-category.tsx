@@ -1,11 +1,14 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, ImageBackground, Dimensions, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Play, X } from 'lucide-react-native';
+import { Play, X, Clock, Eye, Star } from 'lucide-react-native';
 import { Video, ResizeMode } from 'expo-av';
 import categoryVideos from '@/constants/videos-category';
+import { LinearGradient } from 'expo-linear-gradient';
 
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 48) / 2;
 
 export default function VideoCategoryScreen() {
   const { id, title } = useLocalSearchParams();
@@ -14,125 +17,219 @@ export default function VideoCategoryScreen() {
   const exercises = categoryVideos[id as string] || [];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content}>
-      {exercises.map((exercise) => (
-  <TouchableOpacity 
-    key={exercise.id}
-    style={styles.videoCard}
-    onPress={() => setSelectedVideo(exercise.video_url)}
-  >
-    <Text style={styles.videoTitle}>{exercise.name}</Text>
-    <View style={styles.thumbnailContainer}>
-      <ImageBackground 
-        style={styles.thumbnail}
-        source={{ uri: exercise.thumbnail_url || 'https://via.placeholder.com/800x450' }} 
-        resizeMode="cover"
-      >
-        <View style={styles.playButtonContainer}>
-          <View style={styles.playButton}>
-            <Play size={32} color="#FFFFFF" fill="#FFFFFF" />
-          </View>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#1F2937" />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>{title}</Text>
+          <Text style={styles.headerSubtitle}>{exercises.length} videos disponibles</Text>
         </View>
-      </ImageBackground>
-    </View>
-  </TouchableOpacity>
-))}
-      </ScrollView>
 
-      <Modal
-        visible={!!selectedVideo}
-        animationType="fade"
-        transparent={false}
-        onRequestClose={() => setSelectedVideo(null)}
-      >
-        <View style={styles.fullscreenContainer}>
-          <TouchableOpacity 
-            style={styles.closeButton}
-            onPress={() => setSelectedVideo(null)}
-          >
-            <X size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          
-          {selectedVideo && (
-            <Video
-              source={{ uri: selectedVideo }}
-              style={styles.fullscreenVideo}
-              useNativeControls
-              resizeMode={ResizeMode.COVER}
-              shouldPlay={true}
-              isLooping={false}
-            />
-          )}
-        </View>
-      </Modal>
-    </SafeAreaView>
+        <ScrollView 
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.videoGrid}>
+            {exercises.map((exercise, index) => (
+              <TouchableOpacity 
+                key={exercise.id}
+                style={[styles.videoCard, { marginBottom: 20 }]}
+                onPress={() => setSelectedVideo(exercise.video_url)}
+                activeOpacity={0.9}
+              >
+                <View style={styles.thumbnailContainer}>
+                  <ImageBackground 
+                    style={styles.thumbnail}
+                    source={{ uri: exercise.thumbnail_url || 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=400' }} 
+                    resizeMode="cover"
+                  >
+                    {/* Gradient overlay */}
+                    <LinearGradient
+                      colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.7)']}
+                      style={styles.gradientOverlay}
+                    />
+                    
+                    {/* Video duration badge */}
+                    <View style={styles.durationBadge}>
+                      <Clock size={12} color="#FFFFFF" />
+                      <Text style={styles.durationText}>2:30</Text>
+                    </View>
+
+                    {/* Play button with animation effect */}
+                    <View style={styles.playButtonContainer}>
+                      <View style={styles.playButtonOuter}>
+                        <View style={styles.playButton}>
+                          <Play size={24} color="#FFFFFF" fill="#FFFFFF" />
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Quality indicator */}
+                    <View style={styles.qualityBadge}>
+                      <Text style={styles.qualityText}>HD</Text>
+                    </View>
+                  </ImageBackground>
+                </View>
+
+                <View style={styles.videoInfo}>
+                  <Text style={styles.videoTitle} numberOfLines={2}>
+                    {exercise.name}
+                  </Text>
+                  
+                  <View style={styles.videoMeta}>
+                    <View style={styles.metaItem}>
+                      <Eye size={14} color="#6B7280" />
+                      <Text style={styles.metaText}>1.2k vistas</Text>
+                    </View>
+                    <View style={styles.metaItem}>
+                      <Star size={14} color="#F59E0B" fill="#F59E0B" />
+                      <Text style={styles.metaText}>4.8</Text>
+                    </View>
+                  </View>
+
+                  {/* Progress bar */}
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressBar}>
+                      <View style={[styles.progressFill, { width: `${Math.random() * 100}%` }]} />
+                    </View>
+                    <Text style={styles.progressText}>
+                      {Math.floor(Math.random() * 100)}% completado
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* Enhanced Video Modal */}
+        <Modal
+          visible={!!selectedVideo}
+          animationType="fade"
+          transparent={false}
+          onRequestClose={() => setSelectedVideo(null)}
+          statusBarTranslucent
+        >
+          <View style={styles.fullscreenContainer}>
+            <StatusBar barStyle="light-content" backgroundColor="#000000" />
+            
+            {/* Close button with better positioning */}
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setSelectedVideo(null)}
+            >
+              <View style={styles.closeButtonBackground}>
+                <X size={24} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
+            
+            {selectedVideo && (
+              <Video
+                source={{ uri: selectedVideo }}
+                style={styles.fullscreenVideo}
+                useNativeControls
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay={true}
+                isLooping={false}
+              />
+            )}
+          </View>
+        </Modal>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding:-30,
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
   },
   header: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#1F2937',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  title: {
+  headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 8,
+    color: '#FFFFFF',
+    marginBottom: 4,
   },
-  subtitle: {
+  headerSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#D1D5DB',
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 20,
   },
-  videoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    marginBottom: 20,
-    // Para iOS:
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.8,  // Aumenté un poco la opacidad para mejor visibilidad
-    shadowRadius: 7,
-    // Para Android:
-    elevation: 7,  // Reduje la elevación para que coincida mejor con iOS
-    // Importante para iOS:
-    overflow: 'visible', // Cambiado de 'hidden' a 'visible' para que se vea la sombra
+  videoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
-  videoTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+  videoCard: {
+    width: CARD_WIDTH,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
   },
   thumbnailContainer: {
     width: '100%',
-    aspectRatio: 16 / 9,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderBottomEndRadius: 20,
-    borderBottomStartRadius: 20,
-    overflow: 'hidden',
+    height: 120,
+    position: 'relative',
   },
   thumbnail: {
     width: '100%',
     height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  durationBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 3,
+  },
+  durationText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  qualityBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#6366F1',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  qualityText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
   playButtonContainer: {
     position: 'absolute',
     top: 0,
@@ -142,17 +239,77 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  playButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(59, 130, 246, 0.9)',
+  playButtonOuter: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  playButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(99, 102, 241, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  videoInfo: {
+    padding: 16,
+  },
+  videoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 12,
+    lineHeight: 22,
+  },
+  videoMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  progressContainer: {
+    marginTop: 8,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#6366F1',
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   fullscreenContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#000000',
     justifyContent: 'center',
   },
   fullscreenVideo: {
@@ -161,14 +318,18 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 40,
+    top: 50,
     right: 20,
     zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  closeButtonBackground: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
 });
