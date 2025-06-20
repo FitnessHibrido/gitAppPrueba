@@ -158,7 +158,7 @@ export default function TrainScreen() {
 
           <TouchableOpacity 
             style={[styles.quickActionButton, { backgroundColor: '#10B981' }]}
-            onPress={() => router.push('/train/builder')}
+            onPress={() => router.push('/train/workout-builder')}
           >
             <View style={styles.quickActionIcon}>
               <Play size={24} color="#FFFFFF" />
