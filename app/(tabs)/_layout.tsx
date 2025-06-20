@@ -56,137 +56,152 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: '#FFFFFF',
-            borderTopWidth: 0,
-            elevation: 10,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            height: Platform.OS === 'ios' ? 90 : 70,
-            paddingTop: 10,
-            paddingBottom: Platform.OS === 'ios' ? 30 : 10,
-          },
-          tabBarShowLabel: true,
-          tabBarActiveTintColor: '#111827',
-          tabBarInactiveTintColor: '#9CA3AF',
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '600',
-            marginTop: 4,
-          },
-          tabBarIconStyle: {
-            marginTop: 4,
+            display: 'none', // Hide the default tab bar
           },
         }}
         initialRouteName="profile"
-        tabBar={(props) => (
-          <View style={styles.customTabBar}>
+      >
+        <Tabs.Screen name="profile" />
+        <Tabs.Screen name="train" />
+        <Tabs.Screen name="learn" />
+      </Tabs>
+      
+      {/* Custom tab bar */}
+      <View style={styles.customTabBar}>
+        <Animated.View 
+          style={[
+            styles.tabIndicator, 
+            { 
+              transform: [{ translateX: indicatorTranslate }],
+              width: Dimensions.get('window').width / 3
+            }
+          ]}
+        >
+          <LinearGradient
+            colors={['#D0DF00', '#B0BD00']}
+            style={styles.indicatorGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          />
+        </Animated.View>
+        
+        <View style={styles.tabBarContent}>
+          {/* Profile Tab */}
+          <View style={styles.tabItem}>
             <Animated.View 
               style={[
-                styles.tabIndicator, 
-                { 
-                  transform: [{ translateX: indicatorTranslate }],
-                  width: Dimensions.get('window').width / 3
-                }
+                styles.tabButton,
+                activeTab === 'profile' && styles.activeTabButton
               ]}
             >
-              <LinearGradient
-                colors={['#D0DF00', '#B0BD00']}
-                style={styles.indicatorGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              />
+              <View style={styles.tabContent}>
+                <User size={24} color={activeTab === 'profile' ? '#111827' : '#9CA3AF'} />
+                <Text 
+                  style={[
+                    styles.tabLabel,
+                    activeTab === 'profile' && styles.activeTabLabel
+                  ]}
+                >
+                  Perfil
+                </Text>
+              </View>
+              <View style={[
+                styles.tabButtonBackground,
+                activeTab === 'profile' && styles.activeTabButtonBackground
+              ]} />
             </Animated.View>
-            <View style={styles.tabBarContent}>
-              {props.state.routes.map((route, index) => {
-                const { options } = props.descriptors[route.key];
-                const label = options.title || route.name;
-                const isFocused = props.state.index === index;
-                
-                const onPress = () => {
-                  const event = props.navigation.emit({
-                    type: 'tabPress',
-                    target: route.key,
-                    canPreventDefault: true,
-                  });
-                  
-                  if (!isFocused && !event.defaultPrevented) {
-                    props.navigation.navigate(route.name);
-                  }
-                  
-                  animateTabIndicator(index);
-                };
-                
-                let icon;
-                if (route.name === 'profile') {
-                  icon = <User size={24} color={isFocused ? '#111827' : '#9CA3AF'} />;
-                } else if (route.name === 'train') {
-                  icon = <Dumbbell size={24} color={isFocused ? '#111827' : '#9CA3AF'} />;
-                } else if (route.name === 'learn') {
-                  icon = <GraduationCap size={24} color={isFocused ? '#111827' : '#9CA3AF'} />;
-                }
-                
-                return (
-                  <View key={index} style={styles.tabItem}>
-                    <Animated.View 
-                      style={[
-                        styles.tabButton,
-                        isFocused && styles.activeTabButton
-                      ]}
-                    >
-                      <View style={styles.tabContent}>
-                        {icon}
-                        <Text 
-                          style={[
-                            styles.tabLabel,
-                            isFocused && styles.activeTabLabel
-                          ]}
-                        >
-                          {label}
-                        </Text>
-                      </View>
-                      <View style={[
-                        styles.tabButtonBackground,
-                        isFocused && styles.activeTabButtonBackground
-                      ]} />
-                    </Animated.View>
-                    <View style={styles.touchableArea} onTouchEnd={onPress} />
-                  </View>
-                );
-              })}
-            </View>
+            <View 
+              style={styles.touchableArea} 
+              onTouchEnd={() => {
+                setActiveTab('profile');
+                animateTabIndicator(0);
+                Tabs.useRouter().replace('/(tabs)/profile');
+              }} 
+            />
           </View>
-        )}
-      >
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: 'Perfil',
-          }}
-        />
-        <Tabs.Screen
-          name="train"
-          options={{
-            title: 'Entrena',
-          }}
-        />
-        <Tabs.Screen
-          name="learn"
-          options={{
-            title: 'Aprende',
-          }}
-        />
-      </Tabs>
+          
+          {/* Train Tab */}
+          <View style={styles.tabItem}>
+            <Animated.View 
+              style={[
+                styles.tabButton,
+                activeTab === 'train' && styles.activeTabButton
+              ]}
+            >
+              <View style={styles.tabContent}>
+                <Dumbbell size={24} color={activeTab === 'train' ? '#111827' : '#9CA3AF'} />
+                <Text 
+                  style={[
+                    styles.tabLabel,
+                    activeTab === 'train' && styles.activeTabLabel
+                  ]}
+                >
+                  Entrena
+                </Text>
+              </View>
+              <View style={[
+                styles.tabButtonBackground,
+                activeTab === 'train' && styles.activeTabButtonBackground
+              ]} />
+            </Animated.View>
+            <View 
+              style={styles.touchableArea} 
+              onTouchEnd={() => {
+                setActiveTab('train');
+                animateTabIndicator(1);
+                Tabs.useRouter().replace('/(tabs)/train');
+              }} 
+            />
+          </View>
+          
+          {/* Learn Tab */}
+          <View style={styles.tabItem}>
+            <Animated.View 
+              style={[
+                styles.tabButton,
+                activeTab === 'learn' && styles.activeTabButton
+              ]}
+            >
+              <View style={styles.tabContent}>
+                <GraduationCap size={24} color={activeTab === 'learn' ? '#111827' : '#9CA3AF'} />
+                <Text 
+                  style={[
+                    styles.tabLabel,
+                    activeTab === 'learn' && styles.activeTabLabel
+                  ]}
+                >
+                  Aprende
+                </Text>
+              </View>
+              <View style={[
+                styles.tabButtonBackground,
+                activeTab === 'learn' && styles.activeTabButtonBackground
+              ]} />
+            </Animated.View>
+            <View 
+              style={styles.touchableArea} 
+              onTouchEnd={() => {
+                setActiveTab('learn');
+                animateTabIndicator(2);
+                Tabs.useRouter().replace('/(tabs)/learn');
+              }} 
+            />
+          </View>
+        </View>
+      </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   customTabBar: {
-    position: 'relative',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: '#FFFFFF',
-    borderTopWidth: 0,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
@@ -195,6 +210,7 @@ const styles = StyleSheet.create({
     height: Platform.OS === 'ios' ? 90 : 70,
     paddingTop: 10,
     paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+    zIndex: 1000,
   },
   tabBarContent: {
     flexDirection: 'row',
