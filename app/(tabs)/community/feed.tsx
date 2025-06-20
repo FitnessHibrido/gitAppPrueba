@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { Heart, MessageCircle, Share2, MoreVertical, Send, Image as ImageIcon, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
+import { Heart, MessageCircle, Share2, MoveVertical as MoreVertical, Send, Image as ImageIcon, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 interface Post {
