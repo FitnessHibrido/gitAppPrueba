@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
 import { Dumbbell, GraduationCap, User } from 'lucide-react-native';
-import { View, Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
-import { usePathname } from 'expo-router';
+import { View, Text, StyleSheet, Animated, Dimensions, Platform, TouchableOpacity } from 'react-native';
+import { usePathname, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TabLayout() {
   const pathname = usePathname();
+  const router = useRouter();
   const [userName, setUserName] = useState('');
   const [activeTab, setActiveTab] = useState<string>('profile');
   const tabIndicatorAnim = useRef(new Animated.Value(0)).current;
@@ -50,6 +51,12 @@ export default function TabLayout() {
     outputRange: [0, Dimensions.get('window').width / 3, (Dimensions.get('window').width / 3) * 2]
   });
 
+  const navigateToTab = (tab: string, index: number) => {
+    setActiveTab(tab);
+    animateTabIndicator(index);
+    router.replace(`/(tabs)/${tab}`);
+  };
+
   return (
     <>
       <Tabs
@@ -59,7 +66,6 @@ export default function TabLayout() {
             display: 'none', // Hide the default tab bar
           },
         }}
-        initialRouteName="profile"
       >
         <Tabs.Screen name="profile" />
         <Tabs.Screen name="train" />
@@ -87,13 +93,15 @@ export default function TabLayout() {
         
         <View style={styles.tabBarContent}>
           {/* Profile Tab */}
-          <View style={styles.tabItem}>
-            <Animated.View 
-              style={[
-                styles.tabButton,
-                activeTab === 'profile' && styles.activeTabButton
-              ]}
-            >
+          <TouchableOpacity 
+            style={styles.tabItem}
+            onPress={() => navigateToTab('profile', 0)}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              styles.tabButton,
+              activeTab === 'profile' && styles.activeTabButton
+            ]}>
               <View style={styles.tabContent}>
                 <User size={24} color={activeTab === 'profile' ? '#111827' : '#9CA3AF'} />
                 <Text 
@@ -105,29 +113,19 @@ export default function TabLayout() {
                   Perfil
                 </Text>
               </View>
-              <View style={[
-                styles.tabButtonBackground,
-                activeTab === 'profile' && styles.activeTabButtonBackground
-              ]} />
-            </Animated.View>
-            <View 
-              style={styles.touchableArea} 
-              onTouchEnd={() => {
-                setActiveTab('profile');
-                animateTabIndicator(0);
-                Tabs.useRouter().replace('/(tabs)/profile');
-              }} 
-            />
-          </View>
+            </View>
+          </TouchableOpacity>
           
           {/* Train Tab */}
-          <View style={styles.tabItem}>
-            <Animated.View 
-              style={[
-                styles.tabButton,
-                activeTab === 'train' && styles.activeTabButton
-              ]}
-            >
+          <TouchableOpacity 
+            style={styles.tabItem}
+            onPress={() => navigateToTab('train', 1)}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              styles.tabButton,
+              activeTab === 'train' && styles.activeTabButton
+            ]}>
               <View style={styles.tabContent}>
                 <Dumbbell size={24} color={activeTab === 'train' ? '#111827' : '#9CA3AF'} />
                 <Text 
@@ -139,29 +137,19 @@ export default function TabLayout() {
                   Entrena
                 </Text>
               </View>
-              <View style={[
-                styles.tabButtonBackground,
-                activeTab === 'train' && styles.activeTabButtonBackground
-              ]} />
-            </Animated.View>
-            <View 
-              style={styles.touchableArea} 
-              onTouchEnd={() => {
-                setActiveTab('train');
-                animateTabIndicator(1);
-                Tabs.useRouter().replace('/(tabs)/train');
-              }} 
-            />
-          </View>
+            </View>
+          </TouchableOpacity>
           
           {/* Learn Tab */}
-          <View style={styles.tabItem}>
-            <Animated.View 
-              style={[
-                styles.tabButton,
-                activeTab === 'learn' && styles.activeTabButton
-              ]}
-            >
+          <TouchableOpacity 
+            style={styles.tabItem}
+            onPress={() => navigateToTab('learn', 2)}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              styles.tabButton,
+              activeTab === 'learn' && styles.activeTabButton
+            ]}>
               <View style={styles.tabContent}>
                 <GraduationCap size={24} color={activeTab === 'learn' ? '#111827' : '#9CA3AF'} />
                 <Text 
@@ -173,20 +161,8 @@ export default function TabLayout() {
                   Aprende
                 </Text>
               </View>
-              <View style={[
-                styles.tabButtonBackground,
-                activeTab === 'learn' && styles.activeTabButtonBackground
-              ]} />
-            </Animated.View>
-            <View 
-              style={styles.touchableArea} 
-              onTouchEnd={() => {
-                setActiveTab('learn');
-                animateTabIndicator(2);
-                Tabs.useRouter().replace('/(tabs)/learn');
-              }} 
-            />
-          </View>
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
     </>
@@ -235,15 +211,18 @@ const styles = StyleSheet.create({
   tabItem: {
     flex: 1,
     height: '100%',
-    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tabButton: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 8,
+    width: '80%',
+    borderRadius: 20,
   },
   activeTabButton: {
+    backgroundColor: 'rgba(208, 223, 0, 0.1)',
     transform: [{ translateY: -2 }],
   },
   tabContent: {
@@ -259,20 +238,5 @@ const styles = StyleSheet.create({
   activeTabLabel: {
     color: '#111827',
     fontWeight: '700',
-  },
-  tabButtonBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 20,
-    backgroundColor: 'transparent',
-  },
-  activeTabButtonBackground: {
-    backgroundColor: 'rgba(208, 223, 0, 0.1)',
-  },
-  touchableArea: {
-    ...StyleSheet.absoluteFillObject,
   },
 });
