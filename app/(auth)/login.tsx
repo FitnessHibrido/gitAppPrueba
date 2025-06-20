@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react-native';
 import { useAuth } from '@/context/AuthContext';
 import { Animated, Easing, ImageBackground } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Disable SSR for this route
 export const unstable_settings = {
@@ -20,8 +21,12 @@ export default function LoginScreen() {
   const [focusedInput, setFocusedInput] = useState<'email' | 'password' | null>(null);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [slideAnim] = useState(new Animated.Value(-30));
+  
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(-30)).current;
+  const logoAnim = useRef(new Animated.Value(0)).current;
+  const formAnim = useRef(new Animated.Value(0)).current;
 
   const router = useRouter();
   const { signIn } = useAuth();
@@ -35,16 +40,26 @@ export default function LoginScreen() {
 
       if (!email || !password) {
         setError('Por favor, rellene ambos campos');
+        setLoading(false);
         return;
       }
 
       const isEmailValid = email.includes('@');
       const isPasswordValid = password.length >= 6;
 
-      if (!isEmailValid) setEmailError(true);
-      if (!isPasswordValid) setPasswordError(true);
-
-      if (!isEmailValid || !isPasswordValid) return;
+      if (!isEmailValid) {
+        setEmailError(true);
+        setLoading(false);
+        setError('Por favor, introduce un email válido');
+        return;
+      }
+      
+      if (!isPasswordValid) {
+        setPasswordError(true);
+        setLoading(false);
+        setError('La contraseña debe tener al menos 6 caracteres');
+        return;
+      }
 
       await signIn(email, password);
       router.replace('/(tabs)/profile');
@@ -56,19 +71,40 @@ export default function LoginScreen() {
   };
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start();
-
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 1000,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start();
+    // Sequence of animations
+    Animated.sequence([
+      // First fade in the background and title
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      
+      // Then slide in the title
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      
+      // Then animate the logo
+      Animated.timing(logoAnim, {
+        toValue: 1,
+        duration: 500,
+        easing: Easing.bounce,
+        useNativeDriver: true,
+      }),
+      
+      // Finally show the form
+      Animated.timing(formAnim, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      })
+    ]).start();
   }, []);
 
   return (
@@ -78,7 +114,10 @@ export default function LoginScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <View style={styles.overlay} />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.7)']}
+          style={styles.overlay}
+        />
         <SafeAreaView style={styles.safeAreaContent} edges={['top', 'bottom']}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -88,23 +127,67 @@ export default function LoginScreen() {
               contentContainerStyle={styles.scrollContainer}
               keyboardShouldPersistTaps="handled"
             >
-              <View style={styles.logoContainer}>
+              <Animated.View 
+                style={[
+                  styles.logoContainer, 
+                  { 
+                    opacity: logoAnim,
+                    transform: [
+                      { scale: logoAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1]
+                        })
+                      }
+                    ] 
+                  }
+                ]}
+              >
                 <Image
                   source={require('@/assets/images/logotipo-principal-1-negativopantallas-retinas.png')}
                   style={styles.logo}
                 />
-              </View>
+              </Animated.View>
 
               <View style={styles.headerContent}>
-                <Animated.Text style={[styles.title, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+                <Animated.Text 
+                  style={[
+                    styles.title, 
+                    { 
+                      opacity: fadeAnim, 
+                      transform: [{ translateY: slideAnim }] 
+                    }
+                  ]}
+                >
                   ¡Bienvenido de nuevo!
                 </Animated.Text>
-                <Animated.Text style={[styles.subtitle, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+                <Animated.Text 
+                  style={[
+                    styles.subtitle, 
+                    { 
+                      opacity: fadeAnim, 
+                      transform: [{ translateY: slideAnim }] 
+                    }
+                  ]}
+                >
                   Inicia sesión para continuar tu progreso
                 </Animated.Text>
               </View>
 
-              <View style={styles.formContainer}>
+              <Animated.View 
+                style={[
+                  styles.formContainer,
+                  {
+                    opacity: formAnim,
+                    transform: [
+                      { translateY: formAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [20, 0]
+                        })
+                      }
+                    ]
+                  }
+                ]}
+              >
                 {error && (
                   <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>{error}</Text>
@@ -118,12 +201,16 @@ export default function LoginScreen() {
                     focusedInput === 'email' && styles.inputContainerFocused,
                     emailError && styles.inputContainerError
                   ]}>
-                    <Mail size={20} color="#6B7280" />
+                    <Mail size={20} color={emailError ? "#DC2626" : focusedInput === 'email' ? "#D0DF00" : "#9CA3AF"} />
                     <TextInput
                       style={styles.input}
                       placeholder="tu@email.com"
                       value={email}
-                      onChangeText={setEmail}
+                      onChangeText={(text) => {
+                        setEmail(text);
+                        setEmailError(false);
+                        setError(null);
+                      }}
                       autoCapitalize="none"
                       keyboardType="email-address"
                       editable={!loading}
@@ -141,12 +228,16 @@ export default function LoginScreen() {
                     focusedInput === 'password' && styles.inputContainerFocused,
                     passwordError && styles.inputContainerError
                   ]}>
-                    <Lock size={20} color="#6B7280" />
+                    <Lock size={20} color={passwordError ? "#DC2626" : focusedInput === 'password' ? "#D0DF00" : "#9CA3AF"} />
                     <TextInput
                       style={styles.input}
                       placeholder="Tu contraseña"
                       value={password}
-                      onChangeText={setPassword}
+                      onChangeText={(text) => {
+                        setPassword(text);
+                        setPasswordError(false);
+                        setError(null);
+                      }}
                       secureTextEntry={!showPassword}
                       editable={!loading}
                       onFocus={() => setFocusedInput('password')}
@@ -154,7 +245,7 @@ export default function LoginScreen() {
                       placeholderTextColor={'#9CA3AF'}
                     />
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
-                      {showPassword ? <EyeOff size={20} color="#6B7280" /> : <Eye size={20} color="#6B7280" />}
+                      {showPassword ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -172,9 +263,14 @@ export default function LoginScreen() {
                   onPress={handleLogin}
                   disabled={loading}
                 >
-                  <Text style={styles.loginButtonText}>
-                    {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-                  </Text>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <View style={styles.loginButtonContent}>
+                      <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                      <ArrowRight size={20} color="#FFFFFF" />
+                    </View>
+                  )}
                 </TouchableOpacity>
 
                 <View style={styles.registerContainer}>
@@ -183,7 +279,7 @@ export default function LoginScreen() {
                     <Text style={styles.registerLink}>Regístrate</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </Animated.View>
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -206,7 +302,6 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   safeAreaContent: {
     flex: 1,
@@ -221,14 +316,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logoContainer: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 40 : 20,
-    right: 20,
+    alignSelf: 'center',
+    marginBottom: 40,
   },
   logo: {
-    top: -20,
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     resizeMode: 'contain',
   },
   headerContent: {
@@ -236,33 +329,39 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: 12,
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#F3F4F6',
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   formContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 24,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
   inputGroup: {
     marginBottom: 20,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
@@ -273,18 +372,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderWidth: 2,
     borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 16,
-    height: 56,
+    height: 60,
   },
   inputContainerFocused: {
-    borderColor: '#6366F1',
+    borderColor: '#D0DF00',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#6366F1',
+    shadowColor: '#D0DF00',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 10,
+    elevation: 6,
   },
   inputContainerError: {
     borderColor: '#DC2626',
@@ -295,9 +394,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827',
     marginLeft: 12,
+    height: '100%',
   },
   eyeButton: {
-    padding: 8,
+    padding: 10,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
@@ -309,24 +409,31 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loginButton: {
-    backgroundColor: '#6366F1',
+    backgroundColor: '#111827',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
-    shadowColor: '#6366F1',
+    shadowColor: '#111827',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
+    height: 56,
+  },
+  loginButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
   loginButtonDisabled: {
     opacity: 0.7,
   },
   loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: '#D0DF00',
+    fontSize: 18,
     fontWeight: '600',
   },
   registerContainer: {
@@ -336,17 +443,17 @@ const styles = StyleSheet.create({
   },
   registerText: {
     color: '#6B7280',
-    fontSize: 14,
+    fontSize: 16,
   },
   registerLink: {
-    color: '#6366F1',
-    fontSize: 14,
+    color: '#D0DF00',
+    fontSize: 16,
     fontWeight: '600',
   },
   errorContainer: {
     backgroundColor: '#FEF2F2',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#FECACA',
@@ -355,5 +462,6 @@ const styles = StyleSheet.create({
     color: '#DC2626',
     fontSize: 14,
     textAlign: 'center',
+    fontWeight: '500',
   },
 });
