@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { Award, Trophy, TrendingUp, Star, Clock, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
+import { Award, Trophy, TrendingUp, Star, Clock, CircleAlert as AlertCircle, RefreshCw, Heart, Book, Users, Calendar, Target, Gift } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface Achievement {
@@ -77,6 +77,13 @@ export default function AchievementsScreen() {
       case 'workout': return <TrendingUp size={24} color="#FFFFFF" />;
       case 'streak': return <Clock size={24} color="#FFFFFF" />;
       case 'volume': return <Trophy size={24} color="#FFFFFF" />;
+      case 'nutrition': return <Heart size={24} color="#FFFFFF" />;
+      case 'tracking': return <Target size={24} color="#FFFFFF" />;
+      case 'learning': return <Book size={24} color="#FFFFFF" />;
+      case 'social': return <Users size={24} color="#FFFFFF" />;
+      case 'milestone': return <Calendar size={24} color="#FFFFFF" />;
+      case 'challenge': return <Target size={24} color="#FFFFFF" />;
+      case 'special': return <Gift size={24} color="#FFFFFF" />;
       default: return <Award size={24} color="#FFFFFF" />;
     }
   };
@@ -86,7 +93,30 @@ export default function AchievementsScreen() {
       case 'workout': return ['#3B82F6', '#2563EB'];
       case 'streak': return ['#F59E0B', '#D97706'];
       case 'volume': return ['#10B981', '#059669'];
+      case 'nutrition': return ['#EC4899', '#DB2777'];
+      case 'tracking': return ['#8B5CF6', '#7C3AED'];
+      case 'learning': return ['#14B8A6', '#0D9488'];
+      case 'social': return ['#6366F1', '#4F46E5'];
+      case 'milestone': return ['#F97316', '#EA580C'];
+      case 'challenge': return ['#EF4444', '#DC2626'];
+      case 'special': return ['#A855F7', '#9333EA'];
       default: return ['#8B5CF6', '#7C3AED'];
+    }
+  };
+
+  const getAchievementTypeName = (type: string) => {
+    switch (type) {
+      case 'workout': return 'Entrenamiento';
+      case 'streak': return 'Constancia';
+      case 'volume': return 'Volumen';
+      case 'nutrition': return 'Nutrición';
+      case 'tracking': return 'Seguimiento';
+      case 'learning': return 'Aprendizaje';
+      case 'social': return 'Social';
+      case 'milestone': return 'Hitos';
+      case 'challenge': return 'Desafíos';
+      case 'special': return 'Especiales';
+      default: return 'Otros';
     }
   };
 
@@ -178,9 +208,7 @@ export default function AchievementsScreen() {
           achievementTypes.map(type => (
             <View key={type} style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {type === 'workout' ? 'Logros de Entrenamiento' :
-                 type === 'streak' ? 'Logros de Constancia' :
-                 type === 'volume' ? 'Logros de Volumen' : 'Otros Logros'}
+                Logros de {getAchievementTypeName(type)}
               </Text>
               
               <View style={styles.achievementsGrid}>

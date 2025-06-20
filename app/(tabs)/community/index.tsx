@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Trophy, Users, Award, ChevronRight, Medal, Star, TrendingUp, Crown, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { Trophy, Users, Award, ChevronRight, Medal, Star, TrendingUp, Crown, CircleAlert as AlertCircle, Heart, Book, Target, Gift, Calendar } from 'lucide-react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -113,8 +113,15 @@ export default function CommunityScreen() {
   const getAchievementIcon = (type: string) => {
     switch (type) {
       case 'workout': return <TrendingUp size={20} color="#3B82F6" />;
-      case 'streak': return <Award size={20} color="#F59E0B" />;
+      case 'streak': return <Calendar size={20} color="#F59E0B" />;
       case 'volume': return <Trophy size={20} color="#10B981" />;
+      case 'nutrition': return <Heart size={20} color="#EC4899" />;
+      case 'tracking': return <Target size={20} color="#8B5CF6" />;
+      case 'learning': return <Book size={20} color="#14B8A6" />;
+      case 'social': return <Users size={20} color="#6366F1" />;
+      case 'milestone': return <Award size={20} color="#F97316" />;
+      case 'challenge': return <Target size={20} color="#EF4444" />;
+      case 'special': return <Gift size={20} color="#A855F7" />;
       default: return <Star size={20} color="#6B7280" />;
     }
   };
@@ -311,7 +318,15 @@ export default function CommunityScreen() {
                     <View style={[
                       styles.achievementIcon,
                       { backgroundColor: achievement.achievement_type === 'workout' ? '#EFF6FF' : 
-                                        achievement.achievement_type === 'streak' ? '#FEF3C7' : '#ECFDF5' }
+                                        achievement.achievement_type === 'streak' ? '#FEF3C7' : 
+                                        achievement.achievement_type === 'volume' ? '#ECFDF5' :
+                                        achievement.achievement_type === 'nutrition' ? '#FCE7F3' :
+                                        achievement.achievement_type === 'tracking' ? '#F3E8FF' :
+                                        achievement.achievement_type === 'learning' ? '#CCFBF1' :
+                                        achievement.achievement_type === 'social' ? '#EEF2FF' :
+                                        achievement.achievement_type === 'milestone' ? '#FFF7ED' :
+                                        achievement.achievement_type === 'challenge' ? '#FEF2F2' :
+                                        achievement.achievement_type === 'special' ? '#FAE8FF' : '#F3F4F6' }
                     ]}>
                       {getAchievementIcon(achievement.achievement_type)}
                     </View>
