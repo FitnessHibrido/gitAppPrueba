@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ImageBackground, ScrollView, ActivityIndicator, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Mail, ArrowLeft, CheckCircle } from 'lucide-react-native';
+import { Mail, ArrowLeft, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { useAuth } from '@/context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
