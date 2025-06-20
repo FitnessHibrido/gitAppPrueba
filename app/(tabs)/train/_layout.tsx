@@ -41,9 +41,15 @@ export default function TrainLayout() {
         }}
       />
       <Stack.Screen 
-        name="workout-builder" 
+        name="workout-summary" 
         options={{
-          presentation: 'fullScreenModal',
+          presentation: 'card',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen 
+        name="program" 
+        options={{
           headerShown: false,
         }}
       />
