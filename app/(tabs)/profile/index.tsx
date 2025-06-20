@@ -19,11 +19,19 @@ export default function ProfileScreen() {
 
   const loading = profileLoading || performanceLoading || subscriptionLoading;
 
+  // Fix: Don't navigate immediately, check if component is mounted first
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
-    if (!user) {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !user) {
       router.replace('/(auth)/login');
     }
-  }, [user, router]);
+  }, [user, router, isMounted]);
 
   if (!user) return null;
   if (loading || !profile) {
@@ -181,17 +189,6 @@ export default function ProfileScreen() {
               </View>
               <Text style={styles.quickActionTitle}>Rendimiento</Text>
               <Text style={styles.quickActionSubtitle}>Estadísticas</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.quickActionCard}
-              onPress={() => router.push('/community')}
-            >
-              <View style={[styles.quickActionIcon, { backgroundColor: '#FEF3C7' }]}>
-                <Users size={24} color="#F59E0B" />
-              </View>
-              <Text style={styles.quickActionTitle}>Comunidad</Text>
-              <Text style={styles.quickActionSubtitle}>Logros y ranking</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -408,7 +405,7 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     flex: 1,
-    minWidth: '30%',
+    minWidth: '45%',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
