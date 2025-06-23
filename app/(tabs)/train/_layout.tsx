@@ -53,6 +53,13 @@ export default function TrainLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen 
+        name="workout-builder" 
+        options={{
+          presentation: 'fullScreenModal',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Dumbbell, GraduationCap, User } from 'lucide-react-native';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
 import { usePathname } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TabLayout() {
   const pathname = usePathname();
@@ -44,8 +45,8 @@ export default function TabLayout() {
             borderTopWidth: 1,
             borderTopColor: '#F1F5F9',
             paddingTop: 8,
-            paddingBottom: 8,
-            height: 80,
+            paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+            height: Platform.OS === 'ios' ? 88 : 64,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -2 },
             shadowOpacity: 0.1,
@@ -73,6 +74,12 @@ export default function TabLayout() {
                   size={size}
                   color={color}
                 />
+                {focused && (
+                  <LinearGradient
+                    colors={['#6366F1', '#8B5CF6']}
+                    style={styles.activeIndicator}
+                  />
+                )}
               </View>
             ),
           }}
@@ -87,6 +94,12 @@ export default function TabLayout() {
                   size={size}
                   color={color}
                 />
+                {focused && (
+                  <LinearGradient
+                    colors={['#6366F1', '#8B5CF6']}
+                    style={styles.activeIndicator}
+                  />
+                )}
               </View>
             ),
           }}
@@ -101,6 +114,12 @@ export default function TabLayout() {
                   size={size}
                   color={color}
                 />
+                {focused && (
+                  <LinearGradient
+                    colors={['#6366F1', '#8B5CF6']}
+                    style={styles.activeIndicator}
+                  />
+                )}
               </View>
             ),
           }}
@@ -112,15 +131,23 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
+    position: 'relative',
   },
   tabIconFocused: {
     backgroundColor: '#EEF2FF',
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -8,
+    height: 3,
+    width: 20,
+    borderRadius: 1.5,
   },
   tabBarContainer: {
     position: 'absolute',
